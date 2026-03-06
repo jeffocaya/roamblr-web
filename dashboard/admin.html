@@ -3,164 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complete your profile · roamblr</title>
+    <title>Admin · roamblr</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="bg-[#fbfaf8] min-h-screen p-4">
-    <div class="max-w-3xl mx-auto py-8">
-        <a href="/index.html" class="inline-block mb-8">
-            <span class="text-2xl font-bold">roam<span class="text-[#c4511c]">blr</span></span>
-        </a>
+<body class="bg-[#fbfaf8]">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Header - ALL PATHS UPDATED -->
+        <div class="flex justify-between items-center mb-8">
+            <a href="/roamblr-web/index.html" class="text-2xl font-bold">roam<span class="text-[#c4511c]">blr</span></a>
+            <button id="logoutBtn" class="border border-[#151515] hover:bg-[#151515] hover:text-white px-5 py-2 rounded-full text-sm transition">
+                <i class="fas fa-sign-out-alt mr-2"></i>Sign out
+            </button>
+        </div>
+
+        <h1 class="text-3xl font-bold mb-8">Admin Dashboard</h1>
         
-        <div class="bg-white rounded-2xl p-8 shadow-sm border border-[#eeebe6]">
-            <h1 class="text-2xl font-bold mb-2">Complete your creator profile</h1>
-            <p class="text-[#5a5a5a] mb-8">Tell travelers about yourself. We'll review and approve within 48 hours.</p>
-            
-            <form id="profileForm">
-                <!-- Channel Info -->
-                <div class="mb-6">
-                    <label class="block text-sm font-semibold mb-2">Your main channel link *</label>
-                    <input type="url" id="channelLink" required class="w-full border border-[#ddd8d0] rounded-full px-5 py-3 outline-none focus:border-[#c4511c] transition" placeholder="youtube.com/@yourchannel or instagram.com/you">
-                </div>
-                
-                <div class="mb-6">
-                    <label class="block text-sm font-semibold mb-2">Subscribers/followers *</label>
-                    <select id="subs" required class="w-full border border-[#ddd8d0] rounded-full px-5 py-3 outline-none focus:border-[#c4511c] transition">
-                        <option value="">Select range</option>
-                        <option value="1k-10k">1k - 10k</option>
-                        <option value="10k-50k">10k - 50k</option>
-                        <option value="50k-100k">50k - 100k</option>
-                        <option value="100k-500k">100k - 500k</option>
-                        <option value="500k+">500k+</option>
-                    </select>
-                </div>
-                
-                <!-- City -->
-                <div class="mb-6">
-                    <label class="block text-sm font-semibold mb-2">Your city *</label>
-                    <select id="city" required class="w-full border border-[#ddd8d0] rounded-full px-5 py-3 outline-none focus:border-[#c4511c] transition">
-                        <option value="">Select city</option>
-                        <option value="nairobi">Nairobi, Kenya</option>
-                        <option value="kampala">Kampala, Uganda</option>
-                        <option value="mombasa">Mombasa, Kenya</option>
-                        <option value="jinja">Jinja, Uganda</option>
-                        <option value="kisumu">Kisumu, Kenya</option>
-                        <option value="other">Other (specify)</option>
-                    </select>
-                </div>
-                
-                <!-- Other city input (hidden by default) -->
-                <div class="mb-6 hidden" id="otherCityContainer">
-                    <label class="block text-sm font-semibold mb-2">Enter your city</label>
-                    <input type="text" id="otherCity" class="w-full border border-[#ddd8d0] rounded-full px-5 py-3 outline-none focus:border-[#c4511c] transition" placeholder="e.g. Arusha, Tanzania">
-                </div>
-                
-                <!-- Niches -->
-                <div class="mb-6">
-                    <label class="block text-sm font-semibold mb-2">What do you create? *</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="flex items-center gap-2"><input type="checkbox" name="niche" value="adventure"> Adventure</label>
-                        <label class="flex items-center gap-2"><input type="checkbox" name="niche" value="food"> Food</label>
-                        <label class="flex items-center gap-2"><input type="checkbox" name="niche" value="culture"> Culture</label>
-                        <label class="flex items-center gap-2"><input type="checkbox" name="niche" value="nightlife"> Nightlife</label>
-                        <label class="flex items-center gap-2"><input type="checkbox" name="niche" value="beach"> Beach</label>
-                        <label class="flex items-center gap-2"><input type="checkbox" name="niche" value="fashion"> Fashion</label>
-                        <label class="flex items-center gap-2"><input type="checkbox" name="niche" value="tech"> Tech</label>
-                        <label class="flex items-center gap-2"><input type="checkbox" name="niche" value="lifestyle"> Lifestyle</label>
-                    </div>
-                </div>
-                
-                <!-- Bio -->
-                <div class="mb-6">
-                    <label class="block text-sm font-semibold mb-2">Tell us about yourself *</label>
-                    <textarea id="bio" rows="4" required class="w-full border border-[#ddd8d0] rounded-2xl px-5 py-3 outline-none focus:border-[#c4511c] transition" placeholder="What makes your city special? What can you show travelers?"></textarea>
-                </div>
-                
-                <!-- Best video -->
-                <div class="mb-6">
-                    <label class="block text-sm font-semibold mb-2">Link to your best video *</label>
-                    <input type="url" id="bestVideo" required class="w-full border border-[#ddd8d0] rounded-full px-5 py-3 outline-none focus:border-[#c4511c] transition" placeholder="youtube.com/watch=...">
-                </div>
-                
-                <!-- Instagram (optional) -->
-                <div class="mb-8">
-                    <label class="block text-sm font-semibold mb-2">Instagram handle (optional)</label>
-                    <input type="text" id="instagram" class="w-full border border-[#ddd8d0] rounded-full px-5 py-3 outline-none focus:border-[#c4511c] transition" placeholder="@yourhandle">
-                </div>
-                
-                <button type="submit" class="w-full bg-[#c4511c] hover:bg-[#a33f12] text-white font-semibold py-4 rounded-full transition text-lg">
-                    Submit for review
-                </button>
-                
-                <p class="text-xs text-center text-[#6f6f6f] mt-4">We'll review your profile and notify you via email within 48 hours.</p>
-            </form>
+        <!-- Tabs -->
+        <div class="flex gap-4 mb-8">
+            <button onclick="loadPending()" class="px-6 py-2 bg-[#c4511c] text-white rounded-full">Pending</button>
+            <button onclick="loadApproved()" class="px-6 py-2 border border-[#ddd8d0] rounded-full">Approved</button>
+        </div>
+        
+        <!-- Creators List -->
+        <div id="creatorsList" class="grid gap-4">
+            <!-- Loaded by JavaScript -->
         </div>
     </div>
 
     <script type="module">
-        import { auth, db, doc, setDoc, serverTimestamp } from '/js/firebase.js';
-        import { getCurrentUser, requireAuth } from '/js/auth.js';
-        
+        import { db, collection, getDocs, query, where, updateDoc, doc } from '/roamblr-web/js/firebase.js';
+        import { logout, requireAuth } from '/roamblr-web/js/auth.js';
+
+        // Only allow admin access - you'll need to set a user as admin manually in Firebase
         requireAuth();
+
+        window.logout = logout;
+
+        async function loadPending() {
+            const q = query(collection(db, "creators"), where("status", "==", "pending"));
+            const snapshot = await getDocs(q);
+            renderCreators(snapshot.docs);
+        }
         
-        // Show/hide other city field
-        document.getElementById('city').addEventListener('change', function(e) {
-            const container = document.getElementById('otherCityContainer');
-            if (e.target.value === 'other') {
-                container.classList.remove('hidden');
-            } else {
-                container.classList.add('hidden');
-            }
-        });
+        async function loadApproved() {
+            const q = query(collection(db, "creators"), where("status", "==", "approved"));
+            const snapshot = await getDocs(q);
+            renderCreators(snapshot.docs);
+        }
         
-        // Handle form submission
-        document.getElementById('profileForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        function renderCreators(docs) {
+            const container = document.getElementById('creatorsList');
             
-            const user = await getCurrentUser();
-            if (!user) return;
-            
-            // Get selected niches
-            const niches = [];
-            document.querySelectorAll('input[name="niche"]:checked').forEach(cb => {
-                niches.push(cb.value);
-            });
-            
-            // Get city
-            let city = document.getElementById('city').value;
-            if (city === 'other') {
-                city = document.getElementById('otherCity').value;
+            if (docs.length === 0) {
+                container.innerHTML = '<p class="text-center py-12 text-[#6f6f6f]">No creators found</p>';
+                return;
             }
             
-            // Create creator profile
-            const profile = {
-                userId: user.uid,
-                name: user.displayName || user.email.split('@')[0],
-                email: user.email,
-                channelLink: document.getElementById('channelLink').value,
-                subs: document.getElementById('subs').value,
-                city: city,
-                niches: niches,
-                bio: document.getElementById('bio').value,
-                bestVideo: document.getElementById('bestVideo').value,
-                instagram: document.getElementById('instagram').value,
-                status: 'pending', // pending, approved, rejected
-                hosted: 0,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
-            };
-            
-            // Save to Firestore
-            await setDoc(doc(db, "creators", user.uid), profile);
-            
-            // Redirect to thank you page
-            window.location.href = "/thanks.html?type=apply";
-        });
+            container.innerHTML = docs.map(doc => {
+                const data = doc.data();
+                return `
+                    <div class="bg-white rounded-2xl p-6 border border-[#eeebe6]">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold text-lg">${data.name}</h3>
+                                <p class="text-[#c4511c]">${data.city} · ${data.subs}</p>
+                                <p class="text-sm mt-2">${data.bio ? data.bio.substring(0, 100) + '...' : ''}</p>
+                                <div class="flex gap-2 mt-3">
+                                    <a href="${data.channelLink}" target="_blank" class="text-sm text-[#c4511c]">Channel</a>
+                                    <a href="${data.bestVideo}" target="_blank" class="text-sm text-[#c4511c]">Best video</a>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="approveCreator('${doc.id}')" class="bg-green-600 text-white px-4 py-2 rounded-full text-sm hover:bg-green-700 transition">Approve</button>
+                                <button onclick="rejectCreator('${doc.id}')" class="border border-red-600 text-red-600 px-4 py-2 rounded-full text-sm hover:bg-red-600 hover:text-white transition">Reject</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        window.approveCreator = async (id) => {
+            await updateDoc(doc(db, "creators", id), { status: "approved" });
+            loadPending();
+        };
+        
+        window.rejectCreator = async (id) => {
+            await updateDoc(doc(db, "creators", id), { status: "rejected" });
+            loadPending();
+        };
+        
+        // Load pending on page load
+        loadPending();
+
+        document.getElementById('logoutBtn').addEventListener('click', logout);
     </script>
 </body>
 </html>

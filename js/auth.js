@@ -30,14 +30,15 @@ export async function signInWithGoogle() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
-      // CHANGED: Added /roamblr/ to path
-      window.location.href = "/roamblr/auth/choose-role.html";
+      // UPDATED PATH
+      window.location.href = "/roamblr-web/auth/choose-role.html";
     } else {
       const role = userDoc.data().role;
-      if (role === 'local') window.location.href = "/roamblr/dashboard/local.html";
-      else if (role === 'traveler') window.location.href = "/roamblr/dashboard/traveler.html";
-      else if (role === 'admin') window.location.href = "/roamblr/dashboard/admin.html";
-      else window.location.href = "/roamblr/auth/choose-role.html";
+      // UPDATED PATHS
+      if (role === 'local') window.location.href = "/roamblr-web/dashboard/local.html";
+      else if (role === 'traveler') window.location.href = "/roamblr-web/dashboard/traveler.html";
+      else if (role === 'admin') window.location.href = "/roamblr-web/dashboard/admin.html";
+      else window.location.href = "/roamblr-web/auth/choose-role.html";
     }
     return user;
   } catch (error) {
@@ -59,8 +60,8 @@ export async function signUpWithEmail(email, password, name) {
       updatedAt: serverTimestamp()
     });
     
-    // CHANGED: Added /roamblr/ to path
-    window.location.href = "/roamblr/auth/choose-role.html";
+    // UPDATED PATH
+    window.location.href = "/roamblr-web/auth/choose-role.html";
     return user;
   } catch (error) {
     console.error("Sign up error:", error);
@@ -76,16 +77,18 @@ export async function signInWithEmail(email, password) {
     const userDoc = await getDoc(doc(db, "users", user.uid));
     
     if (!userDoc.exists()) {
-      window.location.href = "/roamblr/auth/choose-role.html";
+      // UPDATED PATH
+      window.location.href = "/roamblr-web/auth/choose-role.html";
       return user;
     }
     
     const role = userDoc.data().role;
     
-    if (role === 'local') window.location.href = "/roamblr/dashboard/local.html";
-    else if (role === 'traveler') window.location.href = "/roamblr/dashboard/traveler.html";
-    else if (role === 'admin') window.location.href = "/roamblr/dashboard/admin.html";
-    else window.location.href = "/roamblr/auth/choose-role.html";
+    // UPDATED PATHS
+    if (role === 'local') window.location.href = "/roamblr-web/dashboard/local.html";
+    else if (role === 'traveler') window.location.href = "/roamblr-web/dashboard/traveler.html";
+    else if (role === 'admin') window.location.href = "/roamblr-web/dashboard/admin.html";
+    else window.location.href = "/roamblr-web/auth/choose-role.html";
     
     return user;
   } catch (error) {
@@ -96,8 +99,8 @@ export async function signInWithEmail(email, password) {
 
 export async function logout() {
   await signOut(auth);
-  // CHANGED: Added /roamblr/ to path
-  window.location.href = "/roamblr/index.html";
+  // UPDATED PATH
+  window.location.href = "/roamblr-web/index.html";
 }
 
 export function getCurrentUser() {
@@ -108,7 +111,7 @@ export function getCurrentUser() {
   });
 }
 
-export function requireAuth(redirectTo = "/roamblr/auth/login.html") {
+export function requireAuth(redirectTo = "/roamblr-web/auth/login.html") {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
       window.location.href = redirectTo;

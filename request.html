@@ -4,113 +4,185 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Request intro · roamblr</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="bg-[#fbfaf8]">
-    <div class="max-w-2xl mx-auto px-4 py-8">
-        <a href="/index.html" class="inline-block mb-8">
-            <span class="text-2xl font-bold">roam<span class="text-[#c4511c]">blr</span></span>
-        </a>
+<body class="bg-[#fbfaf8] min-h-screen">
 
-        <div class="bg-white rounded-2xl p-8 border border-[#eeebe6]">
-            <h1 class="text-2xl font-bold mb-6">Request Intro</h1>
-            
-            <div id="creatorInfo" class="bg-[#f9f6f2] rounded-xl p-4 mb-6">
-                <!-- Loaded by JavaScript -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <!-- Navigation - ALL PATHS UPDATED -->
+        <nav class="flex flex-wrap items-center justify-between py-4 border-b border-[#eae7e2] mb-8">
+            <a href="/roamblr-web/index.html" class="text-2xl font-bold">roam<span class="text-[#c4511c]">blr</span></a>
+            <div class="flex items-center gap-4">
+                <a href="/roamblr-web/about.html" class="text-[#2e2e2e] hover:text-[#c4511c]">About</a>
+                <a href="/roamblr-web/auth/signup.html" class="border border-[#151515] hover:bg-[#151515] hover:text-white px-4 py-2 rounded-full text-sm">Get listed</a>
+            </div>
+        </nav>
+
+        <div class="max-w-2xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold mb-2">Request an intro</h1>
+                <p class="text-[#5a5a5a]">Connect with a local creator for your next video</p>
             </div>
 
-            <form id="requestForm">
-                <input type="hidden" id="creatorId" name="creatorId">
-                
-                <div class="mb-4">
-                    <label class="block text-sm font-semibold mb-2">Your name *</label>
-                    <input type="text" id="travelerName" required class="w-full border border-[#ddd8d0] rounded-full px-5 py-3 outline-none focus:border-[#c4511c] transition">
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-semibold mb-2">Travel dates *</label>
-                    <div class="grid grid-cols-2 gap-4">
-                        <input type="date" id="arrivalDate" required class="border border-[#ddd8d0] rounded-full px-5 py-3 outline-none focus:border-[#c4511c] transition">
-                        <input type="date" id="departureDate" required class="border border-[#ddd8d0] rounded-full px-5 py-3 outline-none focus:border-[#c4511c] transition">
+            <!-- Creator Summary (populated from URL) -->
+            <div class="bg-white rounded-2xl p-6 border border-[#eeebe6] mb-8" id="creator-summary">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 bg-[#e6ddd2] rounded-full flex items-center justify-center text-2xl text-[#7a5a44]" id="creator-avatar">👤</div>
+                    <div>
+                        <h2 class="font-bold text-xl" id="creator-name">Loading...</h2>
+                        <p class="text-[#b33f0c] text-sm" id="creator-location"></p>
+                        <p class="text-sm text-[#6f6f6f] mt-1" id="creator-niche"></p>
                     </div>
                 </div>
+            </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-semibold mb-2">What do you want to film? *</label>
-                    <textarea id="contentIdea" rows="4" required class="w-full border border-[#ddd8d0] rounded-2xl px-5 py-3 outline-none focus:border-[#c4511c] transition" placeholder="e.g. Street food tour, nightlife vlog..."></textarea>
-                </div>
+            <!-- Request Form -->
+            <div class="bg-white rounded-2xl p-8 border border-[#eeebe6] shadow-sm">
+                <form id="requestForm">
+                    <input type="hidden" id="creatorId" name="creatorId">
+                    
+                    <!-- Traveler name -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold mb-2">Your name <span class="text-[#c4511c]">*</span></label>
+                        <input type="text" id="travelerName" required class="w-full border border-[#ddd8d0] rounded-full px-5 py-3 outline-none focus:border-[#c4511c] transition" placeholder="e.g. Mark Thompson">
+                    </div>
 
-                <div class="mb-6">
-                    <label class="block text-sm font-semibold mb-2">Message to creator (optional)</label>
-                    <textarea id="personalMessage" rows="3" class="w-full border border-[#ddd8d0] rounded-2xl px-5 py-3 outline-none focus:border-[#c4511c] transition"></textarea>
-                </div>
+                    <!-- Email -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold mb-2">Email <span class="text-[#c4511c]">*</span></label>
+                        <input type="email" id="travelerEmail" required class="w-full border border-[#ddd8d0] rounded-full px-5 py-3 outline-none focus:border-[#c4511c] transition" placeholder="you@example.com">
+                    </div>
 
-                <button type="submit" class="w-full bg-[#c4511c] hover:bg-[#a33f12] text-white font-semibold py-4 rounded-full transition">
-                    Send Request
-                </button>
-            </form>
+                    <!-- Travel dates -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold mb-2">Travel dates <span class="text-[#c4511c]">*</span></label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <input type="date" id="arrivalDate" required class="border border-[#ddd8d0] rounded-full px-5 py-3 outline-none focus:border-[#c4511c] transition">
+                            <input type="date" id="departureDate" required class="border border-[#ddd8d0] rounded-full px-5 py-3 outline-none focus:border-[#c4511c] transition">
+                        </div>
+                    </div>
+
+                    <!-- What to film -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold mb-2">What do you want to film? <span class="text-[#c4511c]">*</span></label>
+                        <textarea id="contentIdea" required rows="4" class="w-full border border-[#ddd8d0] rounded-2xl px-5 py-3 outline-none focus:border-[#c4511c] transition" placeholder="e.g. Street food tour, nightlife vlog, adventure activities..."></textarea>
+                    </div>
+
+                    <!-- Personal message -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold mb-2">Message to creator (optional)</label>
+                        <textarea id="personalMessage" rows="3" class="w-full border border-[#ddd8d0] rounded-2xl px-5 py-3 outline-none focus:border-[#c4511c] transition" placeholder="Any specific questions or ideas?"></textarea>
+                    </div>
+
+                    <!-- Terms note -->
+                    <div class="bg-[#f9f6f2] rounded-xl p-4 mb-6 text-sm text-[#5a5a5a]">
+                        <i class="fas fa-info-circle text-[#c4511c] mr-2"></i>
+                        <span>We'll connect you both via email. No money changes hands — you trade exposure for local knowledge.</span>
+                    </div>
+
+                    <!-- Submit button -->
+                    <button type="submit" class="w-full bg-[#c4511c] hover:bg-[#a33f12] text-white font-semibold py-4 rounded-full transition text-lg">
+                        <i class="fas fa-paper-plane mr-2"></i> Send request
+                    </button>
+                </form>
+            </div>
+
+            <!-- Back link - UPDATED PATH -->
+            <div class="text-center mt-8">
+                <a href="javascript:history.back()" class="text-sm text-[#6f6f6f] hover:text-[#c4511c]">
+                    <i class="fas fa-arrow-left mr-1"></i> Back
+                </a>
+            </div>
         </div>
     </div>
 
     <script type="module">
-        import { auth, db, getCurrentUser, requireAuth } from '/js/auth.js';
-        import { collection, addDoc, doc, getDoc, serverTimestamp } from '/js/firebase.js';
+        import { auth, db, getCurrentUser, requireAuth } from '/roamblr-web/js/auth.js';
+        import { collection, addDoc, doc, getDoc, serverTimestamp } from '/roamblr-web/js/firebase.js';
 
+        // Require authentication
         requireAuth();
 
+        // Get creator ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const creatorId = urlParams.get('creator');
 
         // Load creator info
         async function loadCreatorInfo() {
             if (!creatorId) {
-                window.location.href = '/directory.html';
+                window.location.href = '/roamblr-web/directory.html';
                 return;
             }
 
-            const creatorDoc = await getDoc(doc(db, "creators", creatorId));
-            if (!creatorDoc.exists()) {
-                window.location.href = '/directory.html';
-                return;
-            }
+            try {
+                const creatorDoc = await getDoc(doc(db, "creators", creatorId));
+                if (!creatorDoc.exists()) {
+                    window.location.href = '/roamblr-web/directory.html';
+                    return;
+                }
 
-            const creator = creatorDoc.data();
-            document.getElementById('creatorId').value = creatorId;
-            document.getElementById('creatorInfo').innerHTML = `
-                <p class="font-semibold">Requesting intro to: ${creator.name}</p>
-                <p class="text-sm text-[#c4511c]">${creator.city} · ${creator.subs}</p>
-            `;
+                const creator = creatorDoc.data();
+                
+                // Set hidden field
+                document.getElementById('creatorId').value = creatorId;
+                
+                // Update display
+                document.getElementById('creator-avatar').textContent = creator.avatar || '👤';
+                document.getElementById('creator-name').textContent = creator.name;
+                document.getElementById('creator-location').textContent = `${creator.city || 'Unknown'} · ${creator.subs || '0'}`;
+                document.getElementById('creator-niche').textContent = creator.niches ? creator.niches.join(' · ') : '';
+                
+                // Update page title
+                document.title = `Request intro to ${creator.name} · roamblr`;
+            } catch (error) {
+                console.error("Error loading creator:", error);
+                alert("Error loading creator profile");
+            }
         }
 
         // Handle form submission
         document.getElementById('requestForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const user = await getCurrentUser();
-            if (!user) return;
+            try {
+                const user = await getCurrentUser();
+                if (!user) {
+                    window.location.href = '/roamblr-web/auth/login.html';
+                    return;
+                }
 
-            const request = {
-                travelerId: user.uid,
-                travelerName: document.getElementById('travelerName').value,
-                creatorId: creatorId,
-                arrivalDate: document.getElementById('arrivalDate').value,
-                departureDate: document.getElementById('departureDate').value,
-                contentIdea: document.getElementById('contentIdea').value,
-                message: document.getElementById('personalMessage').value,
-                status: 'pending',
-                createdAt: serverTimestamp()
-            };
+                const request = {
+                    travelerId: user.uid,
+                    travelerName: document.getElementById('travelerName').value,
+                    travelerEmail: document.getElementById('travelerEmail').value,
+                    creatorId: creatorId,
+                    arrivalDate: document.getElementById('arrivalDate').value,
+                    departureDate: document.getElementById('departureDate').value,
+                    contentIdea: document.getElementById('contentIdea').value,
+                    message: document.getElementById('personalMessage').value,
+                    status: 'pending',
+                    createdAt: serverTimestamp()
+                };
 
-            await addDoc(collection(db, "requests"), request);
-            
-            window.location.href = '/thanks.html?type=request';
+                await addDoc(collection(db, "requests"), request);
+                
+                // UPDATED PATH
+                window.location.href = '/roamblr-web/thanks.html?type=request';
+            } catch (error) {
+                console.error("Error submitting request:", error);
+                alert("Failed to submit request. Please try again.");
+            }
         });
 
+        // Load creator info on page load
         loadCreatorInfo();
     </script>
 </body>

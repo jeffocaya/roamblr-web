@@ -25,7 +25,7 @@ import {
 
 const firebaseConfig = {
   apiKey: "AIzaSyAXpkz-AQK0DyHpbAX-tuVwZykRIcuJ0pU",
-  authDomain: "roamblr-web.firebaseapp.com",
+  authDomain: "jeffocaya.github.io",  // CHANGE THIS
   projectId: "roamblr-web",
   storageBucket: "roamblr-web.firebasestorage.app",
   messagingSenderId: "900823803621",

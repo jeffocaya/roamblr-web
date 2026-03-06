@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Dashboard · roamblr</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="bg-[#fbfaf8]">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-8">
+            <a href="/index.html" class="text-2xl font-bold">roam<span class="text-[#c4511c]">blr</span></a>
+            <button id="logoutBtn" class="border border-[#151515] hover:bg-[#151515] hover:text-white px-5 py-2 rounded-full text-sm transition">
+                <i class="fas fa-sign-out-alt mr-2"></i>Sign out
+            </button>
+        </div>
+
+        <h1 class="text-3xl font-bold mb-2">Local Creator Dashboard</h1>
+        <p class="text-[#5a5a5a] mb-8">Manage your profile and intro requests</p>
+
+        <!-- Status Banner -->
+        <div id="statusBanner" class="mb-6 p-4 rounded-xl hidden"></div>
+
+        <!-- Tabs -->
+        <div class="flex gap-4 mb-8 border-b border-[#eae7e2]">
+            <button onclick="showTab('requests')" class="tab-btn active px-6 py-3 font-medium border-b-2 border-[#c4511c] text-[#c4511c]" id="tab-requests">Requests</button>
+            <button onclick="showTab('profile')" class="tab-btn px-6 py-3 font-medium text-[#6f6f6f] hover:text-[#c4511c]" id="tab-profile">My Profile</button>
+        </div>
+
+        <!-- Requests Tab -->
+        <div id="requests-tab" class="tab-content">
+            <h2 class="text-xl font-semibold mb-4">Intro Requests</h2>
+            <div id="requests-list" class="grid gap-4">
+                <!-- Loaded by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Profile Tab -->
+        <div id="profile-tab" class="tab-content hidden">
+            <h2 class="text-xl font-semibold mb-4">My Profile</h2>
+            <div id="profile-info" class="bg-white rounded-2xl p-6 border border-[#eeebe6]">
+                <!-- Loaded by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db, logout, getCurrentUser, requireAuth } from '/js/auth.js';
+        import { collection, query, where, getDocs, doc, getDoc, updateDoc } from '/js/firebase.js';
+
+        requireAuth();
+
+        window.showTab = (tabName) => {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-[#c4511c]', 'text-[#c4511c]');
+                btn.classList.add('text-[#6f6f6f]');
+            });
+            document.getElementById(`tab-${tabName}`).classList.add('border-[#c4511c]', 'text-[#c4511c]');
+        };
+
+        async function loadLocalData() {
+            const user = await getCurrentUser();
+            if (!user) return;
+
+            // Check if creator profile exists
+            const creatorDoc = await getDoc(doc(db, "creators", user.uid));
+            
+            if (!creatorDoc.exists()) {
+                window.location.href = '/dashboard/local/setup.html';
+                return;
+            }
+
+            const creator = creatorDoc.data();
+            
+            // Show status banner
+            const banner = document.getElementById('statusBanner');
+            if (creator.status === 'pending') {
+                banner.classList.remove('hidden');
+                banner.className = 'mb-6 p-4 rounded-xl bg-yellow-100 text-yellow-800';
+                banner.innerHTML = '<i class="fas fa-clock mr-2"></i> Your profile is pending review. You\'ll be notified when approved.';
+            } else if (creator.status === 'approved') {
+                banner.classList.remove('hidden');
+                banner.className = 'mb-6 p-4 rounded-xl bg-green-100 text-green-800';
+                banner.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Your profile is live and visible to travelers!';
+            }
+
+            // Load requests
+            const requestsQuery = query(
+                collection(db, "requests"),
+                where("creatorId", "==", user.uid)
+            );
+            const requestsSnapshot = await getDocs(requestsQuery);
+            
+            const requestsList = document.getElementById('requests-list');
+            
+            if (requestsSnapshot.empty) {
+                requestsList.innerHTML = '<p class="text-[#6f6f6f] py-8 text-center">No intro requests yet.</p>';
+            } else {
+                requestsList.innerHTML = requestsSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    const statusColors = {
+                        pending: 'bg-yellow-100 text-yellow-800',
+                        accepted: 'bg-green-100 text-green-800',
+                        completed: 'bg-blue-100 text-blue-800'
+                    };
+                    
+                    return `
+                        <div class="bg-white rounded-2xl p-5 border border-[#eeebe6]">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="font-semibold">${data.travelerName}</h3>
+                                    <p class="text-sm text-[#c4511c]">📅 ${data.arrivalDate} to ${data.departureDate}</p>
+                                    <p class="text-sm mt-2">"${data.contentIdea}"</p>
+                                    ${data.message ? `<p class="text-sm text-[#5a5a5a] mt-2">💬 ${data.message}</p>` : ''}
+                                </div>
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold ${statusColors[data.status]}">
+                                    ${data.status}
+                                </span>
+                            </div>
+                            ${data.status === 'pending' ? `
+                                <div class="flex gap-2 mt-4">
+                                    <button onclick="updateRequestStatus('${doc.id}', 'accepted')" class="bg-green-600 text-white px-4 py-2 rounded-full text-sm hover:bg-green-700 transition">
+                                        Accept
+                                    </button>
+                                    <button onclick="updateRequestStatus('${doc.id}', 'rejected')" class="border border-red-600 text-red-600 px-4 py-2 rounded-full text-sm hover:bg-red-600 hover:text-white transition">
+                                        Decline
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Show profile
+            document.getElementById('profile-info').innerHTML = `
+                <div class="space-y-3">
+                    <p><span class="font-semibold">Name:</span> ${creator.name}</p>
+                    <p><span class="font-semibold">City:</span> ${creator.city}</p>
+                    <p><span class="font-semibold">Subscribers:</span> ${creator.subs}</p>
+                    <p><span class="font-semibold">Niches:</span> ${creator.niches.join(', ')}</p>
+                    <p><span class="font-semibold">Bio:</span> ${creator.bio}</p>
+                    <p><span class="font-semibold">Channel:</span> <a href="${creator.channelLink}" target="_blank" class="text-[#c4511c] hover:underline">${creator.channelLink}</a></p>
+                    <p><span class="font-semibold">Best video:</span> <a href="${creator.bestVideo}" target="_blank" class="text-[#c4511c] hover:underline">Watch</a></p>
+                    ${creator.instagram ? `<p><span class="font-semibold">Instagram:</span> ${creator.instagram}</p>` : ''}
+                </div>
+            `;
+        }
+
+        window.updateRequestStatus = async (requestId, status) => {
+            await updateDoc(doc(db, "requests", requestId), { status });
+            loadLocalData();
+        };
+
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+
+        loadLocalData();
+    </script>
+</body>
+</html>

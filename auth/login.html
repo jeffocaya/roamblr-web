@@ -61,16 +61,17 @@
     </div>
 
     <script type="module">
-        import { signInWithGoogle, signInWithEmail } from '/js/auth.js';
-        
-        document.getElementById('googleSignIn').addEventListener('click', signInWithGoogle);
-        
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            await signInWithEmail(email, password);
-        });
-    </script>
+    // IMPORTANT: Use the correct path
+    import { signInWithGoogle, signInWithEmail } from '/js/auth.js';
+    
+    document.getElementById('googleSignIn').addEventListener('click', signInWithGoogle);
+    
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        await signInWithEmail(email, password);
+    });
+</script>
 </body>
 </html>

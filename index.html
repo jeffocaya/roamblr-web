@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>roamblr · find local creators everywhere</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#fbfaf8] text-[#151515]">
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <!-- Navigation - EXACT same UI, just updated links -->
+        <nav class="flex flex-wrap items-center justify-between py-4 sm:py-6 border-b border-[#eae7e2] gap-4">
+            <a href="index.html" class="text-2xl sm:text-3xl font-bold tracking-tight hover:opacity-80">
+                roam<span class="text-[#c4511c]">blr</span>
+            </a>
+            <div class="flex items-center gap-4 sm:gap-8">
+                <a href="about.html" class="text-[#2e2e2e] hover:text-[#c4511c] font-medium text-sm sm:text-base">About</a>
+                <!-- ONLY CHANGE: apply.html → auth/signup.html -->
+                <a href="auth/signup.html" class="border border-[#151515] hover:bg-[#151515] hover:text-white transition px-3 sm:px-5 py-1.5 sm:py-2 rounded-full font-semibold text-xs sm:text-sm whitespace-nowrap">
+                    <i class="far fa-paper-plane mr-1"></i> Get listed
+                </a>
+            </div>
+        </nav>
+
+        <!-- Hero - EXACT same -->
+        <div class="text-center py-10 sm:py-16 max-w-3xl mx-auto">
+            <div class="inline-block bg-[#fff1e6] text-[#b33f0c] px-4 sm:px-6 py-2 rounded-full font-semibold text-sm sm:text-lg mb-6">
+                <i class="fas fa-map-pin mr-2"></i> now live: uganda · kenya
+            </div>
+            <h1 class="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight mb-4">
+                Find local creators <span class="text-[#c4511c] border-b-4 border-[#f0dbca] pb-1">wherever you roam</span>
+            </h1>
+            <p class="text-base sm:text-xl text-[#4a4a4a] max-w-2xl mx-auto mb-8">
+                Connect with trusted locals in any city. No DMs into the void.
+            </p>
+            
+            <!-- Search Bar - EXACT same -->
+            <div class="max-w-lg mx-auto mb-8 px-4">
+                <div class="hidden sm:flex bg-white border border-[#ddd8d0] rounded-full pl-6 pr-2 py-1 shadow-sm items-center">
+                    <i class="fas fa-search text-[#c4511c]"></i>
+                    <input type="text" id="search-input-desktop" placeholder="Search any city..." class="flex-1 px-3 py-4 outline-none text-base bg-transparent">
+                    <button onclick="handleSearch('desktop')" class="bg-[#151515] text-white px-8 py-3 rounded-full font-semibold hover:bg-[#3a3a3a] transition whitespace-nowrap">Search</button>
+                </div>
+                <div class="sm:hidden flex flex-col gap-3">
+                    <div class="flex items-center bg-white border border-[#ddd8d0] rounded-full px-5 py-3 shadow-sm">
+                        <i class="fas fa-search text-[#c4511c] mr-3"></i>
+                        <input type="text" id="search-input-mobile" placeholder="Search city..." class="w-full outline-none text-base bg-transparent">
+                    </div>
+                    <button onclick="handleSearch('mobile')" class="bg-[#151515] text-white px-6 py-3 rounded-full font-semibold hover:bg-[#3a3a3a] transition w-full">Search</button>
+                </div>
+            </div>
+
+            <!-- City Chips - EXACT same, just links updated to directory -->
+            <div class="flex flex-wrap gap-3 justify-center mb-8">
+                <a href="directory.html" class="bg-white border border-[#ddd8d0] rounded-full px-5 py-2.5 text-sm font-medium hover:border-[#c4511c] transition">
+                    All Cities
+                </a>
+                <a href="city.html?city=nairobi" class="bg-white border border-[#ddd8d0] rounded-full px-5 py-2.5 text-sm font-medium hover:border-[#c4511c] transition">
+                    🇰🇪 Nairobi
+                </a>
+                <a href="city.html?city=kampala" class="bg-white border border-[#ddd8d0] rounded-full px-5 py-2.5 text-sm font-medium hover:border-[#c4511c] transition">
+                    🇺🇬 Kampala
+                </a>
+                <a href="city.html?city=mombasa" class="bg-white border border-[#ddd8d0] rounded-full px-5 py-2.5 text-sm font-medium hover:border-[#c4511c] transition">
+                    🇰🇪 Mombasa
+                </a>
+                <a href="city.html?city=jinja" class="bg-white border border-[#ddd8d0] rounded-full px-5 py-2.5 text-sm font-medium hover:border-[#c4511c] transition">
+                    🇺🇬 Jinja
+                </a>
+            </div>
+
+            <!-- Stats - EXACT same -->
+            <div class="flex flex-wrap justify-center gap-6 sm:gap-10 text-[#2e2e2e]">
+                <div class="text-center">
+                    <div class="text-xl sm:text-3xl font-bold">20+</div>
+                    <div class="text-xs sm:text-sm text-[#6f6f6f] uppercase tracking-wider">creators</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-xl sm:text-3xl font-bold">2</div>
+                    <div class="text-xs sm:text-sm text-[#6f6f6f] uppercase tracking-wider">countries</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-xl sm:text-3xl font-bold">5</div>
+                    <div class="text-xs sm:text-sm text-[#6f6f6f] uppercase tracking-wider">cities</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-xl sm:text-3xl font-bold">∞</div>
+                    <div class="text-xs sm:text-sm text-[#6f6f6f] uppercase tracking-wider">collabs</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA - ONLY CHANGE: apply.html → auth/signup.html -->
+        <div class="bg-[#f2ede7] rounded-3xl py-12 px-6 text-center my-16">
+            <h2 class="text-2xl sm:text-3xl font-bold mb-3">Are you a local creator?</h2>
+            <p class="text-[#5a5a5a] mb-6">Get discovered by travelers from around the world. Free.</p>
+            <a href="auth/signup.html" class="inline-block bg-[#c4511c] hover:bg-[#a33f12] text-white px-8 py-3 rounded-full font-semibold transition">
+                <i class="fas fa-plus-circle mr-2"></i> Add your profile
+            </a>
+        </div>
+
+        <!-- Footer - EXACT same -->
+        <footer class="border-t border-[#e6e0d8] py-8">
+            <div class="text-center text-sm text-[#6a6a6a]">
+                © 2026 roamblr · find local creators wherever you roam
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Keep search function exactly as before
+        function handleSearch(device) {
+            const inputId = device === 'desktop' ? 'search-input-desktop' : 'search-input-mobile';
+            const searchTerm = document.getElementById(inputId).value.trim().toLowerCase();
+            
+            if (!searchTerm) {
+                alert('Please enter a city name');
+                return;
+            }
+
+            // Simple city mapping
+            const cityMap = {
+                'nairobi': 'nairobi', 'kenya': 'nairobi',
+                'kampala': 'kampala', 'uganda': 'kampala',
+                'mombasa': 'mombasa',
+                'jinja': 'jinja',
+                'kisumu': 'kisumu',
+                'lagos': 'lagos', 'nigeria': 'lagos',
+                'accra': 'accra', 'ghana': 'accra',
+                'cape town': 'cape-town', 'south africa': 'cape-town'
+            };
+
+            if (cityMap[searchTerm]) {
+                window.location.href = `city.html?city=${cityMap[searchTerm]}`;
+            } else {
+                window.location.href = `notify.html?city=${encodeURIComponent(searchTerm.charAt(0).toUpperCase() + searchTerm.slice(1))}`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -25,7 +25,7 @@ import {
 
 const firebaseConfig = {
   apiKey: "AIzaSyAXpkz-AQK0DyHpbAX-tuVwZykRIcuJ0pU",
-  authDomain: "jeffocaya.github.io",  // CHANGE THIS
+  authDomain: "jeffocaya.github.io",
   projectId: "roamblr-web",
   storageBucket: "roamblr-web.firebasestorage.app",
   messagingSenderId: "900823803621",
@@ -36,6 +36,11 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
+
+// IMPORTANT: Set custom domain for redirect
+googleProvider.setCustomParameters({
+  'redirect_uri': 'https://jeffocaya.github.io/roamblr-web/'
+});
 
 export {
   auth,

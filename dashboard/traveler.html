@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Dashboard · roamblr</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
@@ -13,21 +15,20 @@
 </head>
 <body class="bg-[#fbfaf8]">
     <div class="max-w-7xl mx-auto px-4 py-8">
-        <!-- Header -->
+        <!-- Header - ALL PATHS UPDATED -->
         <div class="flex justify-between items-center mb-8">
-            <a href="/index.html" class="text-2xl font-bold">roam<span class="text-[#c4511c]">blr</span></a>
+            <a href="/roamblr-web/index.html" class="text-2xl font-bold">roam<span class="text-[#c4511c]">blr</span></a>
             <button id="logoutBtn" class="border border-[#151515] hover:bg-[#151515] hover:text-white px-5 py-2 rounded-full text-sm transition">
                 <i class="fas fa-sign-out-alt mr-2"></i>Sign out
             </button>
         </div>
 
         <h1 class="text-3xl font-bold mb-2">My Dashboard</h1>
-        <p class="text-[#5a5a5a] mb-8">Manage your intro requests and saved cities</p>
+        <p class="text-[#5a5a5a] mb-8">Manage your intro requests</p>
 
         <!-- Tabs -->
         <div class="flex gap-4 mb-8 border-b border-[#eae7e2]">
             <button onclick="showTab('requests')" class="tab-btn active px-6 py-3 font-medium border-b-2 border-[#c4511c] text-[#c4511c]" id="tab-requests">My Requests</button>
-            <button onclick="showTab('saved')" class="tab-btn px-6 py-3 font-medium text-[#6f6f6f] hover:text-[#c4511c]" id="tab-saved">Saved Cities</button>
             <button onclick="showTab('profile')" class="tab-btn px-6 py-3 font-medium text-[#6f6f6f] hover:text-[#c4511c]" id="tab-profile">Profile</button>
         </div>
 
@@ -35,14 +36,6 @@
         <div id="requests-tab" class="tab-content">
             <h2 class="text-xl font-semibold mb-4">My Intro Requests</h2>
             <div id="requests-list" class="grid gap-4">
-                <!-- Loaded by JavaScript -->
-            </div>
-        </div>
-
-        <!-- Saved Cities Tab -->
-        <div id="saved-tab" class="tab-content hidden">
-            <h2 class="text-xl font-semibold mb-4">Saved Cities</h2>
-            <div id="saved-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Loaded by JavaScript -->
             </div>
         </div>
@@ -59,8 +52,8 @@
     </div>
 
     <script type="module">
-        import { auth, db, logout, getCurrentUser, requireAuth } from '/js/auth.js';
-        import { collection, query, where, getDocs, doc, getDoc } from '/js/firebase.js';
+        import { auth, db, logout, getCurrentUser, requireAuth } from '/roamblr-web/js/auth.js';
+        import { collection, query, where, getDocs, doc, getDoc } from '/roamblr-web/js/firebase.js';
 
         requireAuth();
 
@@ -101,33 +94,39 @@
             const requestsList = document.getElementById('requests-list');
             
             if (requestsSnapshot.empty) {
-                requestsList.innerHTML = '<p class="text-[#6f6f6f] py-8 text-center">No intro requests yet. <a href="/directory.html" class="text-[#c4511c] underline">Browse cities</a> to get started.</p>';
+                requestsList.innerHTML = '<p class="text-[#6f6f6f] py-8 text-center">No intro requests yet. <a href="/roamblr-web/directory.html" class="text-[#c4511c] underline">Browse cities</a> to get started.</p>';
             } else {
-                requestsList.innerHTML = requestsSnapshot.docs.map(async doc => {
+                const requestsHtml = await Promise.all(requestsSnapshot.docs.map(async (doc) => {
                     const data = doc.data();
                     // Get creator info
                     const creatorDoc = await getDoc(doc(db, "creators", data.creatorId));
                     const creator = creatorDoc.exists() ? creatorDoc.data() : { name: 'Unknown' };
+                    
+                    const statusColors = {
+                        pending: 'bg-yellow-100 text-yellow-800',
+                        accepted: 'bg-green-100 text-green-800',
+                        rejected: 'bg-red-100 text-red-800',
+                        completed: 'bg-blue-100 text-blue-800'
+                    };
                     
                     return `
                         <div class="bg-white rounded-2xl p-5 border border-[#eeebe6]">
                             <div class="flex justify-between items-start">
                                 <div>
                                     <h3 class="font-semibold">${creator.name}</h3>
-                                    <p class="text-sm text-[#c4511c]">${data.city || 'Unknown city'}</p>
-                                    <p class="text-sm mt-2">📅 ${data.travelDates || 'Dates not specified'}</p>
-                                    <p class="text-sm text-[#5a5a5a] mt-2">"${data.message || 'No message'}"</p>
+                                    <p class="text-sm text-[#c4511c]">${creator.city || 'Unknown city'}</p>
+                                    <p class="text-sm mt-2">📅 ${data.arrivalDate || 'Dates not specified'}</p>
+                                    <p class="text-sm text-[#5a5a5a] mt-2">"${data.contentIdea || 'No message'}"</p>
                                 </div>
-                                <span class="px-3 py-1 rounded-full text-xs font-semibold
-                                    ${data.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
-                                    ${data.status === 'accepted' ? 'bg-green-100 text-green-800' : ''}
-                                    ${data.status === 'completed' ? 'bg-blue-100 text-blue-800' : ''}">
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold ${statusColors[data.status] || 'bg-gray-100'}">
                                     ${data.status || 'pending'}
                                 </span>
                             </div>
                         </div>
                     `;
-                }).join('');
+                }));
+                
+                requestsList.innerHTML = requestsHtml.join('');
             }
         }
 

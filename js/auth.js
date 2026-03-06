@@ -1,8 +1,6 @@
 // js/auth.js
 import { 
   auth, 
-  googleProvider, 
-  signInWithPopup,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
@@ -14,39 +12,7 @@ import {
   serverTimestamp
 } from './firebase.js';
 
-export async function signInWithGoogle() {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
-    
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    
-    if (!userDoc.exists()) {
-      await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        name: user.displayName || user.email.split('@')[0],
-        photoURL: user.photoURL || null,
-        role: 'pending',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-      // UPDATED PATH
-      window.location.href = "/roamblr-web/auth/choose-role.html";
-    } else {
-      const role = userDoc.data().role;
-      // UPDATED PATHS
-      if (role === 'local') window.location.href = "/roamblr-web/dashboard/local.html";
-      else if (role === 'traveler') window.location.href = "/roamblr-web/dashboard/traveler.html";
-      else if (role === 'admin') window.location.href = "/roamblr-web/dashboard/admin.html";
-      else window.location.href = "/roamblr-web/auth/choose-role.html";
-    }
-    return user;
-  } catch (error) {
-    console.error("Sign in error:", error);
-    alert("Sign in failed: " + error.message);
-  }
-}
-
+// Email/Password Sign Up ONLY
 export async function signUpWithEmail(email, password, name) {
   try {
     const result = await createUserWithEmailAndPassword(auth, email, password);
@@ -60,7 +26,6 @@ export async function signUpWithEmail(email, password, name) {
       updatedAt: serverTimestamp()
     });
     
-    // UPDATED PATH
     window.location.href = "/roamblr-web/auth/choose-role.html";
     return user;
   } catch (error) {
@@ -69,6 +34,7 @@ export async function signUpWithEmail(email, password, name) {
   }
 }
 
+// Email/Password Sign In ONLY
 export async function signInWithEmail(email, password) {
   try {
     const result = await signInWithEmailAndPassword(auth, email, password);
@@ -77,14 +43,12 @@ export async function signInWithEmail(email, password) {
     const userDoc = await getDoc(doc(db, "users", user.uid));
     
     if (!userDoc.exists()) {
-      // UPDATED PATH
       window.location.href = "/roamblr-web/auth/choose-role.html";
       return user;
     }
     
     const role = userDoc.data().role;
     
-    // UPDATED PATHS
     if (role === 'local') window.location.href = "/roamblr-web/dashboard/local.html";
     else if (role === 'traveler') window.location.href = "/roamblr-web/dashboard/traveler.html";
     else if (role === 'admin') window.location.href = "/roamblr-web/dashboard/admin.html";
@@ -97,12 +61,13 @@ export async function signInWithEmail(email, password) {
   }
 }
 
+// Sign Out
 export async function logout() {
   await signOut(auth);
-  // UPDATED PATH
   window.location.href = "/roamblr-web/index.html";
 }
 
+// Get current user
 export function getCurrentUser() {
   return new Promise((resolve, reject) => {
     onAuthStateChanged(auth, (user) => {
@@ -111,6 +76,7 @@ export function getCurrentUser() {
   });
 }
 
+// Check if user is logged in, redirect if not
 export function requireAuth(redirectTo = "/roamblr-web/auth/login.html") {
   onAuthStateChanged(auth, (user) => {
     if (!user) {

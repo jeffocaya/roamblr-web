@@ -4,10 +4,14 @@ roamblr/
 ├── about.html
 ├── directory.html
 ├── city.html
-├── apply.html
-├── request.html
+├── apply.html        (will redirect to signup)
+├── request.html      (will redirect to signup)
 ├── thanks.html
 ├── 404.html
+├── auth/
+│   ├── login.html
+│   ├── signup.html
+│   └── choose-role.html
 ├── dashboard/
 │   ├── local.html
 │   ├── traveler.html

@@ -1,9 +1,11 @@
-// Import Firebase modules
+// js/firebase.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
   getAuth, 
   signInWithPopup, 
   GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -20,18 +22,19 @@ import {
   limit,
   updateDoc,
   deleteDoc,
-  addDoc
+  addDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Your Firebase config 
+// Your Firebase config
 const firebaseConfig = {
-    apiKey: "AIzaSyAXpkz-AQK0DyHpbAX-tuVwZykRIcuJ0pU",
-    authDomain: "roamblr-web.firebaseapp.com",
-    projectId: "roamblr-web",
-    storageBucket: "roamblr-web.firebasestorage.app",
-    messagingSenderId: "900823803621",
-    appId: "1:900823803621:web:57897b8b633096c3b1960c"
-  };
+  apiKey: "AIzaSyAXpkz-AQK0DyHpbAX-tuVwZykRIcuJ0pU",
+  authDomain: "roamblr-web.firebaseapp.com",
+  projectId: "roamblr-web",
+  storageBucket: "roamblr-web.firebasestorage.app",
+  messagingSenderId: "900823803621",
+  appId: "1:900823803621:web:57897b8b633096c3b1960c"
+};
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -45,6 +48,8 @@ export {
   db,
   googleProvider,
   signInWithPopup,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   collection,
@@ -58,5 +63,6 @@ export {
   limit,
   updateDoc,
   deleteDoc,
-  addDoc
+  addDoc,
+  serverTimestamp
 };

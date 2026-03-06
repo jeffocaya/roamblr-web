@@ -37,8 +37,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
-// NO setCustomParameters - let Firebase handle it automatically
-
+// Export everything
 export {
   auth,
   db,

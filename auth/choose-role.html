@@ -1,49 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Choose your role · roamblr</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-<body class="bg-[#fbfaf8]">
-    <div class="max-w-md mx-auto py-20">
-        <h1 class="text-3xl font-bold text-center mb-8">Join roamblr</h1>
+<body class="bg-[#fbfaf8] min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full">
+        <!-- CHANGED: Added /roamblr/ to path -->
+        <a href="/roamblr/index.html" class="block text-center mb-8">
+            <span class="text-3xl font-bold">roam<span class="text-[#c4511c]">blr</span></span>
+        </a>
         
-        <div class="grid gap-4">
-            <button onclick="selectRole('local')" class="bg-white border-2 border-[#c4511c] hover:bg-[#c4511c] hover:text-white p-6 rounded-2xl text-left transition">
-                <h2 class="text-xl font-bold mb-2">I'm a local creator</h2>
-                <p class="text-sm opacity-80">Get discovered by travelers. Show them your city.</p>
-            </button>
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-[#eeebe6]">
+            <h1 class="text-2xl font-bold text-center mb-2">Welcome to roamblr!</h1>
+            <p class="text-center text-[#5a5a5a] mb-8">How will you use roamblr?</p>
             
-            <button onclick="selectRole('traveler')" class="bg-white border-2 border-[#c4511c] hover:bg-[#c4511c] hover:text-white p-6 rounded-2xl text-left transition">
-                <h2 class="text-xl font-bold mb-2">I'm a traveler</h2>
-                <p class="text-sm opacity-80">Find local creators to collab with in any city.</p>
-            </button>
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Local Creator Option -->
+                <div onclick="selectRole('local')" class="border-2 border-[#eeebe6] hover:border-[#c4511c] rounded-2xl p-6 cursor-pointer transition text-center">
+                    <div class="w-20 h-20 bg-[#f2ede7] rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-map-pin text-3xl text-[#c4511c]"></i>
+                    </div>
+                    <h2 class="text-xl font-bold mb-2">I'm a local creator</h2>
+                    <p class="text-sm text-[#6f6f6f] mb-4">I know my city and want to collaborate with travelers</p>
+                    <span class="inline-block border-2 border-[#c4511c] text-[#c4511c] font-semibold px-6 py-2 rounded-full">Choose this</span>
+                </div>
+                
+                <!-- Traveler Option -->
+                <div onclick="selectRole('traveler')" class="border-2 border-[#eeebe6] hover:border-[#c4511c] rounded-2xl p-6 cursor-pointer transition text-center">
+                    <div class="w-20 h-20 bg-[#f2ede7] rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-plane text-3xl text-[#c4511c]"></i>
+                    </div>
+                    <h2 class="text-xl font-bold mb-2">I'm a traveler</h2>
+                    <p class="text-sm text-[#6f6f6f] mb-4">I'm visiting new cities and want to collaborate with locals</p>
+                    <span class="inline-block border-2 border-[#c4511c] text-[#c4511c] font-semibold px-6 py-2 rounded-full">Choose this</span>
+                </div>
+            </div>
         </div>
     </div>
 
     <script type="module">
-        import { auth, db, doc, setDoc } from './js/firebase.js';
-        import { getCurrentUser } from './js/auth.js';
+        import { auth, db, doc, updateDoc, serverTimestamp } from '/roamblr/js/firebase.js';
+        import { getCurrentUser } from '/roamblr/js/auth.js';
         
         window.selectRole = async (role) => {
             const user = await getCurrentUser();
             
             if (!user) {
-                window.location.href = "/index.html";
+                window.location.href = "/roamblr/auth/login.html";
                 return;
             }
             
-            // Save user role to Firestore
-            await setDoc(doc(db, "users", user.uid), {
-                email: user.email,
-                name: user.displayName,
-                photoURL: user.photoURL,
+            await updateDoc(doc(db, "users", user.uid), {
                 role: role,
-                createdAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             });
             
-            // Redirect to profile setup based on role
-            window.location.href = `/setup/${role}.html`;
+            if (role === 'local') {
+                window.location.href = "/roamblr/dashboard/local/setup.html";
+            } else {
+                window.location.href = "/roamblr/dashboard/traveler.html";
+            }
         };
     </script>
 </body>

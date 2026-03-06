@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City creators · roamblr</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#fbfaf8] text-[#151515]">
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <!-- Navigation -->
+        <nav class="flex flex-wrap items-center justify-between py-4 sm:py-6 border-b border-[#eae7e2] gap-4">
+            <a href="index.html" class="text-2xl sm:text-3xl font-bold tracking-tight hover:opacity-80">
+                roam<span class="text-[#c4511c]">blr</span>
+            </a>
+            <div class="flex items-center gap-4 sm:gap-8">
+                <a href="about.html" class="text-[#2e2e2e] hover:text-[#c4511c] font-medium text-sm sm:text-base">About</a>
+                <a href="auth/signup.html" class="border border-[#151515] hover:bg-[#151515] hover:text-white transition px-3 sm:px-5 py-1.5 sm:py-2 rounded-full font-semibold text-xs sm:text-sm whitespace-nowrap">
+                    <i class="far fa-paper-plane mr-1"></i> Get listed
+                </a>
+            </div>
+        </nav>
+
+        <!-- Back link -->
+        <div class="mt-6 mb-2">
+            <a href="directory.html" class="text-sm text-[#6f6f6f] hover:text-[#c4511c] inline-flex items-center gap-1">
+                <i class="fas fa-arrow-left text-xs"></i> Back to all cities
+            </a>
+        </div>
+
+        <!-- City Header - DYNAMIC -->
+        <div class="py-4 sm:py-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2 text-[#c4511c] mb-2">
+                        <i class="fas fa-map-pin"></i>
+                        <span class="text-sm font-semibold uppercase tracking-wide" id="country-name">Loading...</span>
+                    </div>
+                    <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-2" id="city-name">Loading...</h1>
+                    <p class="text-lg text-[#5a5a5a]" id="creator-count">Loading creators...</p>
+                </div>
+            </div>
+
+            <!-- Popular tags -->
+            <div class="flex flex-wrap gap-2 mt-4" id="city-tags">
+                <!-- Loaded from Firebase -->
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="text-center py-20">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#c4511c] border-t-transparent"></div>
+            <p class="text-[#5a5a5a] mt-4">Loading creators...</p>
+        </div>
+
+        <!-- Creator Grid -->
+        <div id="creator-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16 hidden">
+        </div>
+
+        <!-- No Results State -->
+        <div id="no-results" class="text-center py-20 hidden">
+            <div class="w-20 h-20 bg-[#f2ede7] rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-map-pin text-3xl text-[#c4511c]"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">No creators yet</h3>
+            <p class="text-[#5a5a5a] mb-6">Be the first to <a href="auth/signup.html" class="text-[#c4511c] underline">add your profile</a> in this city!</p>
+        </div>
+
+        <!-- Footer -->
+        <footer class="border-t border-[#e6e0d8] py-8">
+            <div class="text-center text-sm text-[#6a6a6a]">
+                © 2026 roamblr · find local creators wherever you roam
+            </div>
+        </footer>
+    </div>
+
+    <script type="module">
+        import { db, collection, query, where, getDocs, doc, getDoc } from '/js/firebase.js';
+
+        // Get city from URL
+        function getCityFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('city') || 'nairobi';
+        }
+
+        // Load city data and creators
+        async function loadCityData() {
+            const citySlug = getCityFromUrl();
+            
+            // Get city info from cities collection
+            const cityDoc = await getDoc(doc(db, "cities", citySlug));
+            
+            if (!cityDoc.exists()) {
+                window.location.href = '/directory.html';
+                return;
+            }
+
+            const cityData = cityDoc.data();
+            
+            // Update header
+            document.getElementById('country-name').textContent = cityData.country;
+            document.getElementById('city-name').textContent = cityData.name;
+            document.title = `${cityData.name} creators · roamblr`;
+
+            // Update tags
+            const tagsContainer = document.getElementById('city-tags');
+            tagsContainer.innerHTML = cityData.tags.map(tag => 
+                `<span class="bg-[#f0ebe4] rounded-full px-3 py-1.5 text-xs font-medium text-[#c4511c] flex items-center gap-1">
+                    <i class="fas ${tag.icon}"></i> ${tag.label}
+                </span>`
+            ).join('');
+
+            // Load approved creators for this city
+            const creatorsQuery = query(
+                collection(db, "creators"),
+                where("city", "==", citySlug),
+                where("status", "==", "approved")
+            );
+            
+            const snapshot = await getDocs(creatorsQuery);
+            const creators = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
+            // Update creator count
+            document.getElementById('creator-count').textContent = `${creators.length} ${creators.length === 1 ? 'creator' : 'creators'} ready to collab`;
+
+            // Hide loading
+            document.getElementById('loading-state').classList.add('hidden');
+
+            if (creators.length === 0) {
+                document.getElementById('no-results').classList.remove('hidden');
+                return;
+            }
+
+            // Show grid and render creators
+            const grid = document.getElementById('creator-grid');
+            grid.classList.remove('hidden');
+            
+            grid.innerHTML = creators.map(creator => `
+                <div class="bg-white rounded-2xl p-5 border border-[#eeebe6] hover:border-[#c4511c] transition">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-[#e6ddd2] rounded-full flex items-center justify-center text-xl">
+                            ${creator.avatar || '👤'}
+                        </div>
+                        <div>
+                            <h3 class="font-bold">${creator.name}</h3>
+                            <p class="text-[#b33f0c] text-xs"><i class="fas fa-map-pin"></i> ${creator.subs}</p>
+                        </div>
+                    </div>
+                    <div class="bg-[#f0ebe4] rounded-full px-2 py-1 text-xs inline-block mb-3">
+                        <i class="fas fa-camera text-[#c4511c] mr-1"></i> ${creator.niches.join(' · ')}
+                    </div>
+                    <div class="flex justify-between text-xs text-[#5f5f5f] my-3">
+                        <span><i class="far fa-clock mr-1"></i> ${creator.responseTime || 'fast'}</span>
+                        <span><i class="fas fa-handshake mr-1"></i> hosted ${creator.hosted || 0}</span>
+                    </div>
+                    <div class="bg-[#f9f6f2] italic p-2 rounded-lg text-xs mb-4">
+                        <i class="fas fa-quote-left text-[#c4511c] mr-1"></i> "${creator.bio?.substring(0, 60)}..."
+                    </div>
+                    <div class="border-t border-[#edebe7] pt-4 flex justify-between items-center">
+                        <span class="text-xs font-semibold text-[#117944]"><i class="fas fa-circle-check mr-1"></i> open</span>
+                        <a href="/request.html?creator=${creator.id}" class="inline-flex items-center gap-1 bg-[#c4511c] hover:bg-[#a33f12] text-white text-xs font-semibold px-3 py-1.5 rounded-full transition shadow-sm">
+                            <i class="fas fa-envelope mr-1"></i> request intro
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load on page load
+        window.addEventListener('DOMContentLoaded', loadCityData);
+    </script>
+</body>
+</html>

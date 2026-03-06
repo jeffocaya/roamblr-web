@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thank you · roamblr</title>
+    <title>Page not found · roamblr</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
@@ -13,86 +13,72 @@
         body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="bg-[#fbfaf8] text-[#151515] min-h-screen flex items-center justify-center p-4">
+<body class="bg-[#fbfaf8] text-[#151515] min-h-screen flex flex-col">
 
-    <div class="max-w-md w-full text-center">
-        <!-- Success Icon - Same as before -->
-        <div class="w-24 h-24 bg-[#c4511c] bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <i class="fas fa-check-circle text-5xl text-[#c4511c]"></i>
-        </div>
-
-        <!-- Dynamic Title -->
-        <h1 class="text-3xl font-bold mb-3" id="thankYouMessage">Thank you!</h1>
-        
-        <!-- Dynamic Message -->
-        <p class="text-[#5a5a5a] mb-8" id="nextStepsMessage">Your request has been received.</p>
-
-        <!-- Action Buttons - Same design -->
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="index.html" class="bg-[#151515] hover:bg-[#3a3a3a] text-white px-6 py-3 rounded-full font-semibold transition">
-                <i class="fas fa-home mr-2"></i> Home
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 w-full flex-1 flex flex-col">
+        <!-- Navigation - ALL PATHS UPDATED -->
+        <nav class="flex flex-wrap items-center justify-between py-4 sm:py-6 border-b border-[#eae7e2] gap-4">
+            <a href="/roamblr-web/index.html" class="text-2xl sm:text-3xl font-bold tracking-tight hover:opacity-80">
+                roam<span class="text-[#c4511c]">blr</span>
             </a>
-            <a href="dashboard/traveler.html" class="border border-[#151515] hover:bg-[#151515] hover:text-white px-6 py-3 rounded-full font-semibold transition" id="dashboardLink">
-                <i class="fas fa-user mr-2"></i> My Dashboard
-            </a>
-        </div>
+            <div class="flex items-center gap-4 sm:gap-8">
+                <a href="/roamblr-web/about.html" class="text-[#2e2e2e] hover:text-[#c4511c] font-medium text-sm sm:text-base">About</a>
+                <a href="/roamblr-web/auth/signup.html" class="border border-[#151515] hover:bg-[#151515] hover:text-white transition px-3 sm:px-5 py-1.5 sm:py-2 rounded-full font-semibold text-xs sm:text-sm whitespace-nowrap">
+                    <i class="far fa-paper-plane mr-1"></i> Get listed
+                </a>
+            </div>
+        </nav>
 
-        <!-- Dashboard link for non-logged users (hidden by default) -->
-        <p class="text-xs text-[#6f6f6f] mt-6" id="loginPrompt">
-            <a href="auth/login.html" class="text-[#c4511c] hover:underline">Sign in</a> to track your requests
-        </p>
-    </div>
-
-    <script type="module">
-        import { auth, onAuthStateChanged } from '/js/firebase.js';
-
-        // Get type from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const type = urlParams.get('type') || 'default';
-        
-        // Messages for different scenarios
-        const messages = {
-            'apply': {
-                title: 'Application submitted!',
-                text: 'We\'ll review your profile and notify you within 48 hours.'
-            },
-            'request': {
-                title: 'Request sent!',
-                text: 'The creator will respond soon. Check your dashboard for updates.'
-            },
-            'notify': {
-                title: 'You\'re on the list!',
-                text: 'We\'ll email you when this city launches.'
-            },
-            'default': {
-                title: 'Thank you!',
-                text: 'Your request has been received.'
-            }
-        };
-
-        // Update page with correct message
-        const msg = messages[type] || messages.default;
-        document.getElementById('thankYouMessage').textContent = msg.title;
-        document.getElementById('nextStepsMessage').textContent = msg.text;
-
-        // Check if user is logged in to show correct dashboard link
-        onAuthStateChanged(auth, (user) => {
-            const dashboardLink = document.getElementById('dashboardLink');
-            const loginPrompt = document.getElementById('loginPrompt');
-            
-            if (user) {
-                // User is logged in - show dashboard link
-                dashboardLink.classList.remove('hidden');
-                loginPrompt.classList.add('hidden');
+        <!-- 404 Content -->
+        <div class="flex-1 flex items-center justify-center py-16">
+            <div class="text-center max-w-lg">
+                <!-- Compass icon -->
+                <div class="w-32 h-32 bg-[#f2ede7] rounded-full flex items-center justify-center mx-auto mb-8">
+                    <i class="fas fa-compass text-5xl text-[#c4511c]"></i>
+                </div>
                 
-                // TODO: In future, we can redirect to correct dashboard based on role
-                // For now, send to traveler dashboard (most common)
-            } else {
-                // User not logged in - show login prompt
-                dashboardLink.classList.add('hidden');
-                loginPrompt.classList.remove('hidden');
-            }
-        });
-    </script>
+                <h1 class="text-6xl font-bold text-[#c4511c] mb-4">404</h1>
+                <h2 class="text-2xl font-bold mb-4">Lost your way?</h2>
+                
+                <p class="text-[#5a5a5a] mb-8">
+                    Looks like you've wandered off the map. The page you're looking for doesn't exist or has been moved.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <!-- UPDATED PATHS -->
+                    <a href="/roamblr-web/index.html" class="bg-[#151515] hover:bg-[#3a3a3a] text-white px-6 py-3 rounded-full font-semibold transition inline-flex items-center justify-center gap-2">
+                        <i class="fas fa-home"></i> Go home
+                    </a>
+                    <a href="/roamblr-web/directory.html" class="border border-[#151515] hover:bg-[#151515] hover:text-white px-6 py-3 rounded-full font-semibold transition inline-flex items-center justify-center gap-2">
+                        <i class="fas fa-search"></i> Browse cities
+                    </a>
+                </div>
+
+                <!-- Popular cities - ALL PATHS UPDATED -->
+                <div class="mt-12 pt-8 border-t border-[#eae7e2]">
+                    <p class="text-sm text-[#6f6f6f] mb-4">Popular destinations:</p>
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <a href="/roamblr-web/city.html?city=nairobi" class="bg-white border border-[#ddd8d0] hover:border-[#c4511c] px-4 py-2 rounded-full text-sm transition">
+                            🇰🇪 Nairobi
+                        </a>
+                        <a href="/roamblr-web/city.html?city=kampala" class="bg-white border border-[#ddd8d0] hover:border-[#c4511c] px-4 py-2 rounded-full text-sm transition">
+                            🇺🇬 Kampala
+                        </a>
+                        <a href="/roamblr-web/city.html?city=mombasa" class="bg-white border border-[#ddd8d0] hover:border-[#c4511c] px-4 py-2 rounded-full text-sm transition">
+                            🇰🇪 Mombasa
+                        </a>
+                        <a href="/roamblr-web/city.html?city=jinja" class="bg-white border border-[#ddd8d0] hover:border-[#c4511c] px-4 py-2 rounded-full text-sm transition">
+                            🇺🇬 Jinja
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="border-t border-[#e6e0d8] py-6 text-center text-sm text-[#6a6a6a]">
+            © 2026 roamblr · find local creators wherever you roam
+        </footer>
+    </div>
 </body>
 </html>

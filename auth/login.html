@@ -13,8 +13,8 @@
 </head>
 <body class="bg-[#fbfaf8] min-h-screen flex items-center justify-center p-4">
     <div class="max-w-md w-full">
-        <!-- Logo - CHANGED: Added /roamblr/ to path -->
-        <a href="/roamblr/index.html" class="block text-center mb-8">
+        <!-- UPDATED PATH -->
+        <a href="/roamblr-web/index.html" class="block text-center mb-8">
             <span class="text-3xl font-bold">roam<span class="text-[#c4511c]">blr</span></span>
         </a>
         
@@ -55,15 +55,15 @@
             
             <p class="text-center text-sm text-[#6f6f6f] mt-6">
                 Don't have an account? 
-                <!-- CHANGED: Added /roamblr/ to path -->
-                <a href="/roamblr/auth/signup.html" class="text-[#c4511c] hover:underline">Sign up</a>
+                <!-- UPDATED PATH -->
+                <a href="/roamblr-web/auth/signup.html" class="text-[#c4511c] hover:underline">Sign up</a>
             </p>
         </div>
     </div>
 
     <script type="module">
-        // CHANGED: Updated import path
-        import { signInWithGoogle, signInWithEmail } from '/roamblr/js/auth.js';
+        // UPDATED PATH
+        import { signInWithGoogle, signInWithEmail } from '/roamblr-web/js/auth.js';
         
         document.getElementById('googleSignIn').addEventListener('click', signInWithGoogle);
         

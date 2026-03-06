@@ -37,10 +37,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
-// IMPORTANT: Set custom domain for redirect
-googleProvider.setCustomParameters({
-  'redirect_uri': 'https://jeffocaya.github.io/roamblr-web/'
-});
+// NO setCustomParameters - let Firebase handle it automatically
 
 export {
   auth,

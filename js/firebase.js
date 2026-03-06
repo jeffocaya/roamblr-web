@@ -2,8 +2,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
   getAuth, 
-  signInWithPopup, 
-  GoogleAuthProvider,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
@@ -25,7 +23,7 @@ import {
 
 const firebaseConfig = {
   apiKey: "AIzaSyAXpkz-AQK0DyHpbAX-tuVwZykRIcuJ0pU",
-  authDomain: "roamblr-web.firebaseapp.com",
+  authDomain: "jeffocaya.github.io",
   projectId: "roamblr-web",
   storageBucket: "roamblr-web.firebasestorage.app",
   messagingSenderId: "900823803621",
@@ -35,14 +33,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const googleProvider = new GoogleAuthProvider();
 
-// Export everything
+// NO Google provider anymore
+
 export {
   auth,
   db,
-  googleProvider,
-  signInWithPopup,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,

@@ -13,8 +13,8 @@
 </head>
 <body class="bg-[#fbfaf8] min-h-screen flex items-center justify-center p-4">
     <div class="max-w-md w-full">
-        <!-- Logo -->
-        <a href="/index.html" class="block text-center mb-8">
+        <!-- Logo - CHANGED: Added /roamblr/ to path -->
+        <a href="/roamblr/index.html" class="block text-center mb-8">
             <span class="text-3xl font-bold">roam<span class="text-[#c4511c]">blr</span></span>
         </a>
         
@@ -55,23 +55,24 @@
             
             <p class="text-center text-sm text-[#6f6f6f] mt-6">
                 Don't have an account? 
-                <a href="/auth/signup.html" class="text-[#c4511c] hover:underline">Sign up</a>
+                <!-- CHANGED: Added /roamblr/ to path -->
+                <a href="/roamblr/auth/signup.html" class="text-[#c4511c] hover:underline">Sign up</a>
             </p>
         </div>
     </div>
 
     <script type="module">
-    // IMPORTANT: Use the correct path
-    import { signInWithGoogle, signInWithEmail } from '/js/auth.js';
-    
-    document.getElementById('googleSignIn').addEventListener('click', signInWithGoogle);
-    
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        await signInWithEmail(email, password);
-    });
-</script>
+        // CHANGED: Updated import path
+        import { signInWithGoogle, signInWithEmail } from '/roamblr/js/auth.js';
+        
+        document.getElementById('googleSignIn').addEventListener('click', signInWithGoogle);
+        
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            await signInWithEmail(email, password);
+        });
+    </script>
 </body>
 </html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse cities · roamblr</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="bg-[#fbfaf8]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <!-- Navigation -->
+        <nav class="flex flex-wrap items-center justify-between py-4 border-b border-[#eae7e2] mb-8">
+            <a href="index.html" class="text-2xl font-bold">roam<span class="text-[#c4511c]">blr</span></a>
+            <div class="flex items-center gap-4">
+                <a href="about.html" class="text-[#2e2e2e] hover:text-[#c4511c]">About</a>
+                <a href="auth/signup.html" class="border border-[#151515] hover:bg-[#151515] hover:text-white px-4 py-2 rounded-full text-sm">Get listed</a>
+            </div>
+        </nav>
+
+        <h1 class="text-3xl font-bold mb-2">Browse cities</h1>
+        <p class="text-[#5a5a5a] mb-8">Find local creators in these cities</p>
+
+        <!-- Loading State -->
+        <div id="loading" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#c4511c] border-t-transparent"></div>
+        </div>
+
+        <!-- Cities Grid -->
+        <div id="cities-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 hidden"></div>
+    </div>
+
+    <script type="module">
+        import { db, collection, getDocs, query, where } from '/js/firebase.js';
+
+        async function loadCities() {
+            // Get all cities
+            const citiesSnapshot = await getDocs(collection(db, "cities"));
+            
+            // Get creator counts per city
+            const cities = [];
+            
+            for (const cityDoc of citiesSnapshot.docs) {
+                const cityData = cityDoc.data();
+                
+                // Count approved creators in this city
+                const creatorsQuery = query(
+                    collection(db, "creators"),
+                    where("city", "==", cityDoc.id),
+                    where("status", "==", "approved")
+                );
+                const creatorsSnapshot = await getDocs(creatorsQuery);
+                
+                cities.push({
+                    id: cityDoc.id,
+                    ...cityData,
+                    creatorCount: creatorsSnapshot.size
+                });
+            }
+
+            // Hide loading, show grid
+            document.getElementById('loading').classList.add('hidden');
+            const grid = document.getElementById('cities-grid');
+            grid.classList.remove('hidden');
+
+            // Render cities
+            grid.innerHTML = cities.map(city => `
+                <a href="city.html?city=${city.id}" class="bg-white rounded-2xl p-6 border border-[#eeebe6] hover:border-[#c4511c] transition block">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-4xl">${city.image || '🌍'}</span>
+                        <span class="bg-[#c4511c] text-white text-xs px-3 py-1 rounded-full">${city.creatorCount} creators</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-1">${city.name}</h3>
+                    <p class="text-[#5a5a5a] text-sm mb-3">${city.country}</p>
+                    <div class="flex flex-wrap gap-2">
+                        ${city.tags.slice(0, 3).map(tag => 
+                            `<span class="bg-[#f0ebe4] text-xs px-2 py-1 rounded-full">${tag.label}</span>`
+                        ).join('')}
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        loadCities();
+    </script>
+</body>
+</html>

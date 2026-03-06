@@ -23,15 +23,15 @@ import {
   addDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Your Firebase config (replace with your actual config)
+// Your Firebase config 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "roamblr.firebaseapp.com",
-  projectId: "roamblr",
-  storageBucket: "roamblr.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
+    apiKey: "AIzaSyAXpkz-AQK0DyHpbAX-tuVwZykRIcuJ0pU",
+    authDomain: "roamblr-web.firebaseapp.com",
+    projectId: "roamblr-web",
+    storageBucket: "roamblr-web.firebasestorage.app",
+    messagingSenderId: "900823803621",
+    appId: "1:900823803621:web:57897b8b633096c3b1960c"
+  };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);

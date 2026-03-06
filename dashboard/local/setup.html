@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Complete your profile · roamblr</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
@@ -13,7 +15,8 @@
 </head>
 <body class="bg-[#fbfaf8] min-h-screen p-4">
     <div class="max-w-3xl mx-auto py-8">
-        <a href="/index.html" class="inline-block mb-8">
+        <!-- Header with logo - UPDATED PATH -->
+        <a href="/roamblr-web/index.html" class="inline-block mb-8">
             <span class="text-2xl font-bold">roam<span class="text-[#c4511c]">blr</span></span>
         </a>
         
@@ -54,7 +57,7 @@
                     </select>
                 </div>
                 
-                <!-- Other city input (hidden by default) -->
+                <!-- Other city input -->
                 <div class="mb-6 hidden" id="otherCityContainer">
                     <label class="block text-sm font-semibold mb-2">Enter your city</label>
                     <input type="text" id="otherCity" class="w-full border border-[#ddd8d0] rounded-full px-5 py-3 outline-none focus:border-[#c4511c] transition" placeholder="e.g. Arusha, Tanzania">
@@ -103,8 +106,8 @@
     </div>
 
     <script type="module">
-        import { auth, db, doc, setDoc, serverTimestamp } from '/js/firebase.js';
-        import { getCurrentUser, requireAuth } from '/js/auth.js';
+        import { auth, db, doc, setDoc, serverTimestamp } from '/roamblr-web/js/firebase.js';
+        import { getCurrentUser, requireAuth } from '/roamblr-web/js/auth.js';
         
         requireAuth();
         
@@ -149,7 +152,7 @@
                 bio: document.getElementById('bio').value,
                 bestVideo: document.getElementById('bestVideo').value,
                 instagram: document.getElementById('instagram').value,
-                status: 'pending', // pending, approved, rejected
+                status: 'pending',
                 hosted: 0,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
@@ -158,8 +161,8 @@
             // Save to Firestore
             await setDoc(doc(db, "creators", user.uid), profile);
             
-            // Redirect to thank you page
-            window.location.href = "/thanks.html?type=apply";
+            // UPDATED PATH
+            window.location.href = "/roamblr-web/thanks.html?type=apply";
         });
     </script>
 </body>

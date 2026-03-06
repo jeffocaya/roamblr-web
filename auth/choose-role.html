@@ -6,11 +6,15 @@
     <title>Choose your role · roamblr</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
 <body class="bg-[#fbfaf8] min-h-screen flex items-center justify-center p-4">
     <div class="max-w-2xl w-full">
-        <!-- CHANGED: Added /roamblr/ to path -->
-        <a href="/roamblr/index.html" class="block text-center mb-8">
+        <!-- UPDATED PATH -->
+        <a href="/roamblr-web/index.html" class="block text-center mb-8">
             <span class="text-3xl font-bold">roam<span class="text-[#c4511c]">blr</span></span>
         </a>
         
@@ -43,14 +47,15 @@
     </div>
 
     <script type="module">
-        import { auth, db, doc, updateDoc, serverTimestamp } from '/roamblr/js/firebase.js';
-        import { getCurrentUser } from '/roamblr/js/auth.js';
+        // UPDATED PATHS
+        import { auth, db, doc, updateDoc, serverTimestamp } from '/roamblr-web/js/firebase.js';
+        import { getCurrentUser } from '/roamblr-web/js/auth.js';
         
         window.selectRole = async (role) => {
             const user = await getCurrentUser();
             
             if (!user) {
-                window.location.href = "/roamblr/auth/login.html";
+                window.location.href = "/roamblr-web/auth/login.html";
                 return;
             }
             
@@ -60,9 +65,9 @@
             });
             
             if (role === 'local') {
-                window.location.href = "/roamblr/dashboard/local/setup.html";
+                window.location.href = "/roamblr-web/dashboard/local/setup.html";
             } else {
-                window.location.href = "/roamblr/dashboard/traveler.html";
+                window.location.href = "/roamblr-web/dashboard/traveler.html";
             }
         };
     </script>

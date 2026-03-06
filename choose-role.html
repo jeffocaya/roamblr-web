@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Choose your role · roamblr</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#fbfaf8]">
+    <div class="max-w-md mx-auto py-20">
+        <h1 class="text-3xl font-bold text-center mb-8">Join roamblr</h1>
+        
+        <div class="grid gap-4">
+            <button onclick="selectRole('local')" class="bg-white border-2 border-[#c4511c] hover:bg-[#c4511c] hover:text-white p-6 rounded-2xl text-left transition">
+                <h2 class="text-xl font-bold mb-2">I'm a local creator</h2>
+                <p class="text-sm opacity-80">Get discovered by travelers. Show them your city.</p>
+            </button>
+            
+            <button onclick="selectRole('traveler')" class="bg-white border-2 border-[#c4511c] hover:bg-[#c4511c] hover:text-white p-6 rounded-2xl text-left transition">
+                <h2 class="text-xl font-bold mb-2">I'm a traveler</h2>
+                <p class="text-sm opacity-80">Find local creators to collab with in any city.</p>
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db, doc, setDoc } from './js/firebase.js';
+        import { getCurrentUser } from './js/auth.js';
+        
+        window.selectRole = async (role) => {
+            const user = await getCurrentUser();
+            
+            if (!user) {
+                window.location.href = "/index.html";
+                return;
+            }
+            
+            // Save user role to Firestore
+            await setDoc(doc(db, "users", user.uid), {
+                email: user.email,
+                name: user.displayName,
+                photoURL: user.photoURL,
+                role: role,
+                createdAt: new Date().toISOString()
+            });
+            
+            // Redirect to profile setup based on role
+            window.location.href = `/setup/${role}.html`;
+        };
+    </script>
+</body>
+</html>

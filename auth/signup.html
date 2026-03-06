@@ -64,17 +64,17 @@
     </div>
 
     <script type="module">
-        import { signInWithGoogle, signUpWithEmail } from '/js/auth.js';
-        
-        document.getElementById('googleSignIn').addEventListener('click', signInWithGoogle);
-        
-        document.getElementById('signupForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            await signUpWithEmail(email, password, name);
-        });
-    </script>
+    import { signInWithGoogle, signUpWithEmail } from '/js/auth.js';
+    
+    document.getElementById('googleSignIn').addEventListener('click', signInWithGoogle);
+    
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        await signUpWithEmail(email, password, name);
+    });
+</script>
 </body>
 </html>

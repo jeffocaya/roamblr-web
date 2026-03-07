@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creator Profile · roamblr</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#fbfaf8] text-[#151515]">
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <!-- Navigation - UPDATED PATH -->
+        <nav class="flex flex-wrap items-center justify-between py-4 sm:py-6 border-b border-[#eae7e2] gap-4">
+            <a href="/roamblr-web/index.html" class="text-2xl sm:text-3xl font-bold tracking-tight hover:opacity-80">
+                roam<span class="text-[#c4511c]">blr</span>
+            </a>
+            <div class="flex items-center gap-4 sm:gap-8">
+                <a href="/roamblr-web/about.html" class="text-[#2e2e2e] hover:text-[#c4511c] font-medium text-sm sm:text-base">About</a>
+                <a href="/roamblr-web/auth/signup.html" class="border border-[#151515] hover:bg-[#151515] hover:text-white transition px-3 sm:px-5 py-1.5 sm:py-2 rounded-full font-semibold text-xs sm:text-sm whitespace-nowrap">
+                    <i class="far fa-paper-plane mr-1"></i> Get listed
+                </a>
+            </div>
+        </nav>
+
+        <!-- Back link -->
+        <div class="mt-6 mb-4">
+            <a href="javascript:history.back()" class="text-sm text-[#6f6f6f] hover:text-[#c4511c] inline-flex items-center gap-1">
+                <i class="fas fa-arrow-left text-xs"></i> Back
+            </a>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="text-center py-20">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#c4511c] border-t-transparent"></div>
+            <p class="text-[#5a5a5a] mt-4">Loading creator profile...</p>
+        </div>
+
+        <!-- Creator Profile (hidden until loaded) -->
+        <div id="profile-content" class="hidden">
+            <!-- Profile Header -->
+            <div class="bg-white rounded-2xl p-8 border border-[#eeebe6] mb-6">
+                <div class="flex flex-col md:flex-row gap-8 items-start">
+                    <!-- Avatar -->
+                    <div class="w-32 h-32 bg-[#e6ddd2] rounded-full flex items-center justify-center text-5xl text-[#7a5a44] flex-shrink-0" id="creator-avatar">
+                        👤
+                    </div>
+                    
+                    <!-- Info -->
+                    <div class="flex-1">
+                        <h1 class="text-3xl font-bold mb-2" id="creator-name">Loading...</h1>
+                        
+                        <div class="flex flex-wrap gap-4 mb-4">
+                            <span class="flex items-center gap-1 text-[#c4511c]" id="creator-location">
+                                <i class="fas fa-map-pin"></i> Loading...
+                            </span>
+                            <span class="flex items-center gap-1 text-[#5a5a5a]" id="creator-subs">
+                                <i class="fab fa-youtube"></i> Loading...
+                            </span>
+                        </div>
+                        
+                        <!-- Niche tags -->
+                        <div class="flex flex-wrap gap-2 mb-4" id="creator-niches">
+                            <!-- Loaded by JS -->
+                        </div>
+                        
+                        <!-- Stats -->
+                        <div class="flex gap-6">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-[#c4511c]" id="creator-hosted">0</div>
+                                <div class="text-xs text-[#6f6f6f]">collabs</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-[#c4511c]" id="creator-response">-</div>
+                                <div class="text-xs text-[#6f6f6f]">response time</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Request button -->
+                    <div class="flex-shrink-0">
+                        <a href="#" id="request-btn" class="inline-block bg-[#c4511c] hover:bg-[#a33f12] text-white px-8 py-3 rounded-full font-semibold transition">
+                            <i class="fas fa-envelope mr-2"></i> Request Intro
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bio Section -->
+            <div class="bg-white rounded-2xl p-8 border border-[#eeebe6] mb-6">
+                <h2 class="text-xl font-bold mb-4">About</h2>
+                <p class="text-[#5a5a5a] leading-relaxed" id="creator-bio">
+                    Loading...
+                </p>
+            </div>
+
+            <!-- Video Showcase -->
+            <div class="bg-white rounded-2xl p-8 border border-[#eeebe6] mb-6">
+                <h2 class="text-xl font-bold mb-4">Featured Video</h2>
+                <div class="aspect-video bg-[#f0ebe4] rounded-xl flex items-center justify-center" id="video-container">
+                    <a href="#" id="video-link" target="_blank" class="text-center">
+                        <i class="fab fa-youtube text-5xl text-[#c4511c] mb-2"></i>
+                        <p class="text-sm text-[#5a5a5a]">Click to watch best video</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Past Collaborations -->
+            <div class="bg-white rounded-2xl p-8 border border-[#eeebe6] mb-6">
+                <h2 class="text-xl font-bold mb-4">Past Collaborations</h2>
+                <div id="past-collabs" class="space-y-4">
+                    <!-- Loaded by JS -->
+                </div>
+                <p class="text-sm text-[#6f6f6f] mt-4" id="no-collabs">No past collaborations yet.</p>
+            </div>
+
+            <!-- Social Links -->
+            <div class="bg-white rounded-2xl p-8 border border-[#eeebe6]">
+                <h2 class="text-xl font-bold mb-4">Connect</h2>
+                <div class="flex gap-4">
+                    <a href="#" id="social-youtube" target="_blank" class="text-[#5a5a5a] hover:text-[#c4511c]">
+                        <i class="fab fa-youtube text-2xl"></i>
+                    </a>
+                    <a href="#" id="social-instagram" target="_blank" class="text-[#5a5a5a] hover:text-[#c4511c]">
+                        <i class="fab fa-instagram text-2xl"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Not Found State -->
+        <div id="not-found" class="text-center py-20 hidden">
+            <div class="w-24 h-24 bg-[#f2ede7] rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-user-slash text-3xl text-[#c4511c]"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-2">Creator not found</h2>
+            <p class="text-[#5a5a5a] mb-6">This creator profile doesn't exist or hasn't been approved yet.</p>
+            <a href="/roamblr-web/directory.html" class="inline-block bg-[#151515] hover:bg-[#3a3a3a] text-white px-6 py-3 rounded-full font-semibold transition">
+                Browse directory
+            </a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db, doc, getDoc, collection, query, where, getDocs } from '/roamblr-web/js/firebase.js';
+        import { getCurrentUser } from '/roamblr-web/js/auth.js';
+
+        // Get creator ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const creatorId = urlParams.get('id');
+
+        async function loadCreatorProfile() {
+            if (!creatorId) {
+                showNotFound();
+                return;
+            }
+
+            try {
+                // Get creator data
+                const creatorDoc = await getDoc(doc(db, "creators", creatorId));
+                
+                if (!creatorDoc.exists()) {
+                    showNotFound();
+                    return;
+                }
+
+                const creator = creatorDoc.data();
+
+                // Check if approved (only show approved creators to public)
+                if (creator.status !== 'approved') {
+                    showNotFound();
+                    return;
+                }
+
+                // Update page title
+                document.title = `${creator.name} · roamblr`;
+
+                // Fill in profile
+                document.getElementById('creator-avatar').textContent = creator.avatar || '👤';
+                document.getElementById('creator-name').textContent = creator.name;
+                document.getElementById('creator-location').innerHTML = `<i class="fas fa-map-pin"></i> ${creator.city || 'Unknown'}`;
+                document.getElementById('creator-subs').innerHTML = `<i class="fab fa-youtube"></i> ${creator.subs || '0'} subscribers`;
+                document.getElementById('creator-hosted').textContent = creator.hosted || '0';
+                document.getElementById('creator-response').textContent = creator.responseTime || '24h';
+                document.getElementById('creator-bio').textContent = creator.bio || 'No bio yet.';
+                
+                // Niches
+                const nichesContainer = document.getElementById('creator-niches');
+                if (creator.niches && creator.niches.length > 0) {
+                    nichesContainer.innerHTML = creator.niches.map(niche => 
+                        `<span class="bg-[#f0ebe4] px-3 py-1 rounded-full text-sm text-[#c4511c]">${niche}</span>`
+                    ).join('');
+                }
+
+                // Social links
+                document.getElementById('social-youtube').href = creator.channelLink || '#';
+                document.getElementById('social-instagram').href = creator.instagram ? `https://instagram.com/${creator.instagram.replace('@', '')}` : '#';
+                
+                // Video link
+                if (creator.bestVideo) {
+                    document.getElementById('video-link').href = creator.bestVideo;
+                }
+
+                // Request button
+                document.getElementById('request-btn').href = `/roamblr-web/request.html?creator=${creatorId}`;
+
+                // Load past collaborations from requests
+                const requestsQuery = query(
+                    collection(db, "requests"),
+                    where("creatorId", "==", creatorId),
+                    where("status", "in", ["accepted", "completed"])
+                );
+                const requestsSnapshot = await getDocs(requestsQuery);
+                
+                const collabsContainer = document.getElementById('past-collabs');
+                if (!requestsSnapshot.empty) {
+                    document.getElementById('no-collabs').classList.add('hidden');
+                    
+                    // Group by traveler
+                    const collabList = await Promise.all(requestsSnapshot.docs.map(async (reqDoc) => {
+                        const req = reqDoc.data();
+                        // Get traveler info
+                        const travelerDoc = await getDoc(doc(db, "users", req.travelerId));
+                        const traveler = travelerDoc.exists() ? travelerDoc.data() : { name: 'Anonymous' };
+                        
+                        return `
+                            <div class="border-b border-[#eeebe6] pb-4 last:border-0">
+                                <p class="font-semibold">${traveler.name}</p>
+                                <p class="text-sm text-[#5a5a5a]">${req.contentIdea || 'Collaboration'}</p>
+                                <p class="text-xs text-[#6f6f6f] mt-1">${req.arrivalDate} to ${req.departureDate}</p>
+                            </div>
+                        `;
+                    }));
+                    
+                    collabsContainer.innerHTML = collabList.join('');
+                }
+
+                // Hide loading, show profile
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('profile-content').classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Error loading creator:", error);
+                showNotFound();
+            }
+        }
+
+        function showNotFound() {
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('not-found').classList.remove('hidden');
+        }
+
+        // Load on page load
+        window.addEventListener('DOMContentLoaded', loadCreatorProfile);
+    </script>
+</body>
+</html>

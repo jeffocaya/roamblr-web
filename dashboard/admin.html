@@ -69,7 +69,32 @@
                 <div class="text-xs text-[#6f6f6f] mt-1">All time</div>
             </div>
         </div>
-
+        
+<!-- Data Repair Tool (Collapsible) -->
+<div class="bg-white p-4 rounded-xl border border-[#eeebe6] mb-6">
+    <button onclick="toggleRepairTool()" class="w-full flex justify-between items-center">
+        <span class="font-semibold text-sm flex items-center gap-2">
+            <i class="fas fa-tools text-[#c4511c]"></i>
+            Data Repair Tool
+        </span>
+        <i class="fas fa-chevron-down text-[#6f6f6f]" id="repair-chevron"></i>
+    </button>
+    
+    <div id="repair-tool" class="hidden mt-4 space-y-3">
+        <p class="text-xs text-[#6f6f6f]">Fix creators that were approved but not showing up.</p>
+        
+        <div class="grid grid-cols-2 gap-2">
+            <button onclick="fixApprovedCreators()" class="bg-yellow-600 text-white py-2 rounded-full text-xs font-medium">
+                <i class="fas fa-sync-alt mr-1"></i> Fix Approved
+            </button>
+            <button onclick="verifyAllCreators()" class="bg-blue-600 text-white py-2 rounded-full text-xs font-medium">
+                <i class="fas fa-check-double mr-1"></i> Verify All
+            </button>
+        </div>
+        
+        <div id="repair-results" class="text-xs mt-2 hidden"></div>
+    </div>
+</div>
         <!-- Quick Actions -->
         <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
             <button onclick="loadPending()" class="bg-[#c4511c] text-white px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
@@ -443,6 +468,146 @@
 
         // Initial load
         loadAllData();
+        // Toggle repair tool
+window.toggleRepairTool = () => {
+    const tool = document.getElementById('repair-tool');
+    const chevron = document.getElementById('repair-chevron');
+    tool.classList.toggle('hidden');
+    chevron.classList.toggle('fa-chevron-down');
+    chevron.classList.toggle('fa-chevron-up');
+};
+
+// Fix previously approved creators
+window.fixApprovedCreators = async () => {
+    const results = document.getElementById('repair-results');
+    results.classList.remove('hidden');
+    results.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Checking creators...';
+    
+    try {
+        // Get all creators marked as approved
+        const q = query(collection(db, "creators"), where("status", "==", "approved"));
+        const snapshot = await getDocs(q);
+        
+        let fixed = 0;
+        let alreadyGood = 0;
+        
+        for (const doc of snapshot.docs) {
+            const creator = doc.data();
+            let needsFix = false;
+            
+            // Check if missing required fields
+            if (!creator.city || !creator.niches || !creator.bio) {
+                needsFix = true;
+            }
+            
+            // Check if email is missing
+            if (!creator.email) {
+                // Try to get from users collection
+                const userDoc = await getDoc(doc(db, "users", doc.id));
+                if (userDoc.exists()) {
+                    await updateDoc(doc.ref, { 
+                        email: userDoc.data().email,
+                        name: userDoc.data().name || creator.name
+                    });
+                    fixed++;
+                }
+            }
+            
+            // Ensure status is explicitly 'approved'
+            await updateDoc(doc.ref, { 
+                status: "approved",
+                lastVerified: new Date().toISOString()
+            });
+            
+            if (needsFix) {
+                fixed++;
+            } else {
+                alreadyGood++;
+            }
+        }
+        
+        results.innerHTML = `
+            <div class="bg-green-100 text-green-800 p-3 rounded">
+                <i class="fas fa-check-circle mr-1"></i> 
+                Fixed: ${fixed} creators | Already good: ${alreadyGood}
+            </div>
+        `;
+        
+        // Refresh data
+        loadAllData();
+        
+    } catch (error) {
+        console.error("Error fixing creators:", error);
+        results.innerHTML = `
+            <div class="bg-red-100 text-red-800 p-3 rounded">
+                <i class="fas fa-exclamation-circle mr-1"></i> 
+                Error: ${error.message}
+            </div>
+        `;
+    }
+};
+
+// Verify all creators (check if they're actually showing up)
+window.verifyAllCreators = async () => {
+    const results = document.getElementById('repair-results');
+    results.classList.remove('hidden');
+    results.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Verifying creators...';
+    
+    try {
+        const creatorsSnapshot = await getDocs(collection(db, "creators"));
+        const citiesSnapshot = await getDocs(collection(db, "cities"));
+        
+        const cityList = citiesSnapshot.docs.map(d => d.id);
+        let issues = [];
+        
+        for (const doc of creatorsSnapshot.docs) {
+            const creator = doc.data();
+            
+            // Check if city exists
+            if (!cityList.includes(creator.city)) {
+                issues.push(`${creator.name}: city "${creator.city}" doesn't exist`);
+            }
+            
+            // Check if approved but missing required fields
+            if (creator.status === 'approved') {
+                if (!creator.niches || creator.niches.length === 0) {
+                    issues.push(`${creator.name}: approved but no niches`);
+                }
+                if (!creator.bio || creator.bio.length < 10) {
+                    issues.push(`${creator.name}: approved but bio too short`);
+                }
+            }
+        }
+        
+        if (issues.length === 0) {
+            results.innerHTML = `
+                <div class="bg-green-100 text-green-800 p-3 rounded">
+                    <i class="fas fa-check-circle mr-1"></i> 
+                    All creators look good!
+                </div>
+            `;
+        } else {
+            results.innerHTML = `
+                <div class="bg-yellow-100 text-yellow-800 p-3 rounded">
+                    <p class="font-semibold mb-2">⚠️ Found ${issues.length} issues:</p>
+                    <ul class="list-disc pl-4 text-xs space-y-1">
+                        ${issues.slice(0, 5).map(i => `<li>${i}</li>`).join('')}
+                        ${issues.length > 5 ? `<li>...and ${issues.length - 5} more</li>` : ''}
+                    </ul>
+                </div>
+            `;
+        }
+        
+    } catch (error) {
+        console.error("Error verifying:", error);
+        results.innerHTML = `
+            <div class="bg-red-100 text-red-800 p-3 rounded">
+                <i class="fas fa-exclamation-circle mr-1"></i> 
+                Error: ${error.message}
+            </div>
+        `;
+    }
+};
     </script>
 </body>
 </html>

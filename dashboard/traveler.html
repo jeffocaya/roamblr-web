@@ -11,9 +11,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 </head>
-<body class="bg-[#fbfaf8]">
+<body class="bg-[#fbfaf8] pb-24">
 
     <!-- Simple Mobile Header -->
     <div class="bg-white border-b border-[#eae7e2] px-4 py-3 sticky top-0 z-10">
@@ -22,9 +36,9 @@
                 roam<span class="text-[#c4511c]">blr</span>
             </a>
             <div class="flex items-center gap-3">
-                <a href="/roamblr-web/directory.html" class="text-[#c4511c] text-sm">
-                    <i class="fas fa-search"></i>
-                </a>
+                <button onclick="window.location.reload()" class="text-[#6f6f6f] text-sm">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
                 <button id="logoutBtn" class="border border-[#151515] text-[#151515] px-3 py-1.5 rounded-full text-xs">
                     Exit
                 </button>
@@ -33,113 +47,334 @@
     </div>
 
     <div class="px-4 py-6 max-w-lg mx-auto">
-        <!-- Header -->
-        <div class="mb-6">
-            <h1 class="text-2xl font-bold">Your Trips</h1>
-            <p class="text-[#5a5a5a] text-sm mt-1">Track your collaboration requests</p>
+        <!-- Welcome Header with Greeting -->
+        <div class="mb-6 slide-up">
+            <p class="text-sm text-[#6f6f6f]">Welcome back,</p>
+            <h1 class="text-2xl font-bold" id="welcome-name">Traveler</h1>
+            <div class="flex items-center gap-2 mt-1">
+                <p class="text-xs text-[#6f6f6f]" id="member-since">Member since 2024</p>
+                <span class="text-[#c4511c] text-xs" id="trip-badge">🌍 0 trips planned</span>
+            </div>
         </div>
 
-        <!-- Quick Stats -->
-        <div class="grid grid-cols-2 gap-3 mb-6">
-            <div class="bg-white p-4 rounded-xl border border-[#eeebe6]">
+        <!-- Quick Actions Row -->
+        <div class="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+            <a href="/roamblr-web/directory.html" class="bg-white shadow-sm rounded-full px-4 py-2 text-sm font-medium flex items-center gap-2 whitespace-nowrap border border-[#eeebe6]">
+                <i class="fas fa-search text-[#c4511c]"></i>
+                Find Creators
+            </a>
+            <a href="/roamblr-web/directory.html" class="bg-white shadow-sm rounded-full px-4 py-2 text-sm font-medium flex items-center gap-2 whitespace-nowrap border border-[#eeebe6]">
+                <i class="fas fa-map-pin text-[#c4511c]"></i>
+                Popular Cities
+            </a>
+            <button onclick="window.location.href='/roamblr-web/directory.html?upcoming=true'" class="bg-white shadow-sm rounded-full px-4 py-2 text-sm font-medium flex items-center gap-2 whitespace-nowrap border border-[#eeebe6]">
+                <i class="fas fa-calendar-alt text-[#c4511c]"></i>
+                Upcoming Trips
+            </button>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-3 gap-2 mb-6">
+            <div class="bg-white p-4 rounded-xl border border-[#eeebe6] text-center shadow-sm">
                 <div class="text-2xl font-bold text-[#c4511c]" id="stat-pending">0</div>
                 <div class="text-xs text-[#6f6f6f]">Pending</div>
+                <div class="text-[10px] text-yellow-600 mt-1" id="pending-status"></div>
             </div>
-            <div class="bg-white p-4 rounded-xl border border-[#eeebe6]">
+            <div class="bg-white p-4 rounded-xl border border-[#eeebe6] text-center shadow-sm">
                 <div class="text-2xl font-bold text-[#c4511c]" id="stat-accepted">0</div>
-                <div class="text-xs text-[#6f6f6f]">Accepted</div>
+                <div class="text-xs text-[#6f6f6f]">Confirmed</div>
+                <div class="text-[10px] text-green-600 mt-1" id="accepted-status"></div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-[#eeebe6] text-center shadow-sm">
+                <div class="text-2xl font-bold text-[#c4511c]" id="stat-total">0</div>
+                <div class="text-xs text-[#6f6f6f]">Total</div>
+                <div class="text-[10px] text-[#6f6f6f] mt-1" id="total-status">requests</div>
             </div>
         </div>
 
-        <!-- Requests List -->
-        <div id="requests-list" class="space-y-3">
-            <!-- Loaded by JS -->
+        <!-- Next Trip Card (if any) -->
+        <div id="next-trip-card" class="bg-gradient-to-r from-[#c4511c] to-[#e67e4a] text-white p-4 rounded-xl mb-6 hidden slide-up">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm opacity-90">Your next trip</span>
+                <span class="text-xs bg-white bg-opacity-20 px-2 py-1 rounded-full" id="next-trip-days"></span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-2xl">
+                    🌍
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg" id="next-trip-city">Loading...</h3>
+                    <p class="text-sm opacity-90" id="next-trip-dates"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex border-b border-[#eae7e2] mb-4">
+            <button onclick="switchTab('upcoming')" class="tab-btn active flex-1 py-3 text-sm font-medium border-b-2 border-[#c4511c] text-[#c4511c]" id="tab-upcoming">
+                Upcoming (<span id="upcoming-count">0</span>)
+            </button>
+            <button onclick="switchTab('past')" class="tab-btn flex-1 py-3 text-sm font-medium text-[#6f6f6f]" id="tab-past">
+                Past
+            </button>
+        </div>
+
+        <!-- Upcoming Tab -->
+        <div id="upcoming-tab" class="tab-content">
+            <div id="upcoming-list" class="space-y-3">
+                <!-- Loaded by JS -->
+            </div>
+        </div>
+
+        <!-- Past Tab -->
+        <div id="past-tab" class="tab-content hidden">
+            <div id="past-list" class="space-y-3">
+                <!-- Loaded by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-[#eae7e2] px-4 py-2 z-50">
+        <div class="flex justify-around items-center">
+            <a href="/roamblr-web/dashboard/traveler.html" class="flex flex-col items-center p-2 text-[#c4511c]">
+                <i class="fas fa-home text-xl"></i>
+                <span class="text-xs mt-1">Home</span>
+            </a>
+            <a href="/roamblr-web/directory.html" class="flex flex-col items-center p-2 text-[#6f6f6f]">
+                <i class="fas fa-search text-xl"></i>
+                <span class="text-xs mt-1">Browse</span>
+            </a>
+            <a href="/roamblr-web/dashboard/traveler.html?tab=past" class="flex flex-col items-center p-2 text-[#6f6f6f]">
+                <i class="fas fa-history text-xl"></i>
+                <span class="text-xs mt-1">History</span>
+            </a>
         </div>
     </div>
 
     <script type="module">
         import { auth, db, logout, getCurrentUser, requireAuth } from '/roamblr-web/js/auth.js';
-        import { collection, query, where, getDocs, doc, getDoc } from '/roamblr-web/js/firebase.js';
+        import { collection, query, where, getDocs, doc, getDoc, orderBy, limit } from '/roamblr-web/js/firebase.js';
 
         requireAuth();
+
+        let currentRequests = [];
+        let userData = null;
+
+        // Tab switching
+        window.switchTab = (tabName) => {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-[#c4511c]', 'text-[#c4511c]');
+                btn.classList.add('text-[#6f6f6f]');
+            });
+            document.getElementById(`tab-${tabName}`).classList.add('border-[#c4511c]', 'text-[#c4511c]');
+            
+            window.location.hash = tabName;
+        };
+
+        // Check URL hash on load
+        if (window.location.hash === '#past') {
+            switchTab('past');
+        }
 
         async function loadTravelerData() {
             const user = await getCurrentUser();
             if (!user) return;
 
-            // Load requests
-            const requestsQuery = query(
-                collection(db, "requests"),
-                where("travelerId", "==", user.uid)
-            );
-            const requestsSnapshot = await getDocs(requestsQuery);
-            const requests = requestsSnapshot.docs;
-            
-            // Update stats
-            const pending = requests.filter(d => d.data().status === 'pending').length;
-            const accepted = requests.filter(d => d.data().status === 'accepted').length;
-            
-            document.getElementById('stat-pending').textContent = pending;
-            document.getElementById('stat-accepted').textContent = accepted;
+            try {
+                // Get user data
+                userData = (await getDoc(doc(db, "users", user.uid))).data();
+                
+                // Welcome message
+                document.getElementById('welcome-name').textContent = userData?.name || 'Traveler';
+                
+                // Member since
+                if (userData?.createdAt) {
+                    const date = new Date(userData.createdAt.seconds * 1000);
+                    document.getElementById('member-since').textContent = `Member since ${date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+                }
 
-            const requestsList = document.getElementById('requests-list');
+                // Load all requests
+                const requestsQuery = query(
+                    collection(db, "requests"),
+                    where("travelerId", "==", user.uid),
+                    orderBy("createdAt", "desc")
+                );
+                
+                const requestsSnapshot = await getDocs(requestsQuery);
+                
+                currentRequests = await Promise.all(requestsSnapshot.docs.map(async (doc) => {
+                    const data = doc.data();
+                    // Get creator info
+                    const creatorDoc = await getDoc(doc(db, "creators", data.creatorId));
+                    const creator = creatorDoc.exists() ? creatorDoc.data() : { name: 'Unknown', city: 'Unknown' };
+                    
+                    return {
+                        id: doc.id,
+                        ...data,
+                        creatorName: creator.name,
+                        creatorCity: creator.city,
+                        creatorAvatar: creator.avatar || '👤'
+                    };
+                }));
+                
+                // Update stats
+                const pending = currentRequests.filter(r => r.status === 'pending').length;
+                const accepted = currentRequests.filter(r => r.status === 'accepted').length;
+                
+                document.getElementById('stat-pending').textContent = pending;
+                document.getElementById('stat-accepted').textContent = accepted;
+                document.getElementById('stat-total').textContent = currentRequests.length;
+                
+                document.getElementById('upcoming-count').textContent = currentRequests.filter(r => r.status !== 'rejected' && r.status !== 'completed').length;
+                document.getElementById('trip-badge').textContent = `🌍 ${accepted} confirmed trip${accepted !== 1 ? 's' : ''}`;
+                
+                if (pending > 0) {
+                    document.getElementById('pending-status').innerHTML = '⏳ Awaiting response';
+                }
+                if (accepted > 0) {
+                    document.getElementById('accepted-status').innerHTML = '✅ Ready to go';
+                }
+
+                // Find next upcoming trip
+                const upcoming = currentRequests
+                    .filter(r => r.status === 'accepted' && r.arrivalDate)
+                    .sort((a, b) => new Date(a.arrivalDate) - new Date(b.arrivalDate))[0];
+                
+                if (upcoming) {
+                    const daysUntil = Math.ceil((new Date(upcoming.arrivalDate) - new Date()) / (1000 * 60 * 60 * 24));
+                    document.getElementById('next-trip-card').classList.remove('hidden');
+                    document.getElementById('next-trip-city').textContent = upcoming.creatorCity;
+                    document.getElementById('next-trip-dates').textContent = `${upcoming.arrivalDate} to ${upcoming.departureDate}`;
+                    document.getElementById('next-trip-days').textContent = daysUntil > 0 ? `${daysUntil} days away` : 'Today!';
+                }
+
+                // Render lists
+                renderUpcomingList();
+                renderPastList();
+
+            } catch (error) {
+                console.error("Error loading data:", error);
+            }
+        }
+
+        function renderUpcomingList() {
+            const upcomingList = document.getElementById('upcoming-list');
+            const upcoming = currentRequests.filter(r => r.status !== 'rejected' && r.status !== 'completed');
             
-            if (requests.length === 0) {
-                requestsList.innerHTML = `
-                    <div class="bg-white p-8 rounded-xl border border-[#eeebe6] text-center">
-                        <div class="w-16 h-16 bg-[#f2ede7] rounded-full flex items-center justify-center mx-auto mb-3">
-                            <i class="fas fa-map-pin text-2xl text-[#c4511c]"></i>
+            if (upcoming.length === 0) {
+                upcomingList.innerHTML = `
+                    <div class="bg-white p-8 rounded-xl border-2 border-dashed border-[#c4511c] text-center slide-up">
+                        <div class="w-20 h-20 bg-[#c4511c] bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-plane text-3xl text-[#c4511c]"></i>
                         </div>
-                        <p class="text-[#5a5a5a] text-sm mb-3">No requests yet</p>
-                        <a href="/roamblr-web/directory.html" class="inline-block bg-[#c4511c] text-white px-6 py-2 rounded-full text-sm">
-                            Browse Cities
+                        <h3 class="text-lg font-bold mb-2">Plan your next adventure</h3>
+                        <p class="text-sm text-[#5a5a5a] mb-4">Find local creators in cities around the world</p>
+                        <a href="/roamblr-web/directory.html" class="inline-block bg-[#c4511c] text-white px-6 py-3 rounded-full text-sm font-medium">
+                            Browse Cities <i class="fas fa-arrow-right ml-2"></i>
                         </a>
                     </div>
                 `;
-            } else {
-                const requestsHtml = await Promise.all(requests.map(async (doc) => {
-                    const data = doc.data();
-                    const creatorDoc = await getDoc(doc(db, "creators", data.creatorId));
-                    const creator = creatorDoc.exists() ? creatorDoc.data() : { name: 'Unknown' };
-                    
-                    const statusColors = {
-                        pending: 'bg-yellow-100 text-yellow-800',
-                        accepted: 'bg-green-100 text-green-800',
-                        rejected: 'bg-red-100 text-red-800',
-                        completed: 'bg-blue-100 text-blue-800'
-                    };
-                    
-                    return `
-                        <div class="bg-white p-4 rounded-xl border border-[#eeebe6]">
-                            <div class="flex justify-between items-start mb-2">
-                                <h3 class="font-semibold">${creator.name}</h3>
-                                <span class="px-2 py-1 rounded-full text-xs font-medium ${statusColors[data.status]}">
-                                    ${data.status}
-                                </span>
-                            </div>
-                            <p class="text-xs text-[#c4511c] mb-2">
-                                <i class="far fa-calendar mr-1"></i> ${data.arrivalDate} to ${data.departureDate}
-                            </p>
-                            <p class="text-sm text-[#5a5a5a]">"${data.contentIdea}"</p>
-                            
-                            ${data.status === 'accepted' ? `
-                                <div class="mt-3 p-3 bg-green-50 rounded-lg">
-                                    <p class="text-xs text-green-700">
-                                        <i class="fas fa-check-circle mr-1"></i> 
-                                        Request accepted! They'll contact you soon.
-                                    </p>
-                                </div>
-                            ` : ''}
-                            
-                            <a href="/roamblr-web/creator.html?id=${data.creatorId}" class="mt-3 text-xs text-[#c4511c] inline-block">
-                                View Profile →
-                            </a>
-                        </div>
-                    `;
-                }));
-                
-                requestsList.innerHTML = requestsHtml.join('');
+                return;
             }
+
+            upcomingList.innerHTML = upcoming.map((request, index) => {
+                const statusColors = {
+                    pending: 'bg-yellow-100 text-yellow-800',
+                    accepted: 'bg-green-100 text-green-800'
+                };
+                
+                const statusIcons = {
+                    pending: '⏳',
+                    accepted: '✅'
+                };
+                
+                return `
+                    <div class="bg-white p-4 rounded-xl border border-[#eeebe6] slide-up" style="animation-delay: ${index * 0.1}s">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-12 h-12 bg-[#e6ddd2] rounded-full flex items-center justify-center text-xl">
+                                ${request.creatorAvatar}
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-semibold">${request.creatorName}</h3>
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium ${statusColors[request.status]}">
+                                        ${statusIcons[request.status]} ${request.status}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-[#c4511c]">${request.creatorCity}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 text-xs text-[#6f6f6f] mb-2">
+                            <i class="far fa-calendar"></i>
+                            <span>${request.arrivalDate || '?'} → ${request.departureDate || '?'}</span>
+                        </div>
+                        
+                        <p class="text-sm text-[#5a5a5a] mb-3 bg-[#f9f6f2] p-2 rounded-lg">
+                            "${request.contentIdea || 'No details'}"
+                        </p>
+                        
+                        <!-- Status Timeline -->
+                        <div class="relative pl-6 pb-2 mb-2 border-l-2 ${request.status === 'pending' ? 'border-yellow-400' : 'border-green-400'}">
+                            <div class="absolute -left-2 top-0 w-4 h-4 ${request.status === 'pending' ? 'bg-yellow-400 animate-pulse' : 'bg-green-400'} rounded-full"></div>
+                            <p class="text-xs font-medium">
+                                ${request.status === 'pending' ? 'Waiting for creator to respond' : 'Request accepted!'}
+                            </p>
+                            <p class="text-xs text-[#6f6f6f]">
+                                ${request.status === 'pending' ? 'They typically respond within 24h' : `Contact: ${request.creatorEmail || 'email coming soon'}`}
+                            </p>
+                        </div>
+                        
+                        <a href="/roamblr-web/creator.html?id=${request.creatorId}" class="text-xs text-[#c4511c] inline-block mt-1">
+                            View Profile →
+                        </a>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderPastList() {
+            const pastList = document.getElementById('past-list');
+            const past = currentRequests.filter(r => r.status === 'rejected' || r.status === 'completed');
+            
+            if (past.length === 0) {
+                pastList.innerHTML = `
+                    <div class="bg-white p-8 rounded-xl border border-[#eeebe6] text-center">
+                        <p class="text-sm text-[#6f6f6f]">No past collaborations yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            pastList.innerHTML = past.map((request, index) => {
+                const statusColors = {
+                    rejected: 'bg-red-100 text-red-800',
+                    completed: 'bg-blue-100 text-blue-800'
+                };
+                
+                return `
+                    <div class="bg-white p-4 rounded-xl border border-[#eeebe6] opacity-75 slide-up" style="animation-delay: ${index * 0.1}s">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-[#e6ddd2] rounded-full flex items-center justify-center text-lg">
+                                ${request.creatorAvatar}
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-semibold text-sm">${request.creatorName}</h3>
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium ${statusColors[request.status]}">
+                                        ${request.status}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-[#6f6f6f]">${request.arrivalDate || '?'}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         document.getElementById('logoutBtn').addEventListener('click', logout);

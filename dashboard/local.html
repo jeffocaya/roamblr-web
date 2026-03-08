@@ -14,15 +14,33 @@
     </style>
 </head>
 <body class="bg-[#fbfaf8]">
-    <div class="max-w-7xl mx-auto px-4 py-8">
-        <!-- Header - ALL PATHS UPDATED -->
-        <div class="flex justify-between items-center mb-8">
-            <a href="/roamblr-web/index.html" class="text-2xl font-bold">roam<span class="text-[#c4511c]">blr</span></a>
-            <button id="logoutBtn" class="border border-[#151515] hover:bg-[#151515] hover:text-white px-5 py-2 rounded-full text-sm transition">
-                <i class="fas fa-sign-out-alt mr-2"></i>Sign out
-            </button>
-        </div>
 
+    <!-- Navigation Bar - ADDED -->
+    <nav class="bg-white border-b border-[#eae7e2]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <a href="/roamblr-web/index.html" class="text-xl font-bold">
+                    roam<span class="text-[#c4511c]">blr</span>
+                </a>
+                
+                <!-- Nav Links -->
+                <div class="flex items-center gap-6">
+                    <a href="/roamblr-web/directory.html" class="text-[#2e2e2e] hover:text-[#c4511c] text-sm font-medium">
+                        Browse Cities
+                    </a>
+                    <a href="/roamblr-web/about.html" class="text-[#2e2e2e] hover:text-[#c4511c] text-sm font-medium">
+                        About
+                    </a>
+                    <button id="logoutBtn" class="border border-[#151515] hover:bg-[#151515] hover:text-white px-4 py-1.5 rounded-full text-sm transition">
+                        <i class="fas fa-sign-out-alt mr-1"></i> Sign out
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
         <h1 class="text-3xl font-bold mb-2">Local Creator Dashboard</h1>
         <p class="text-[#5a5a5a] mb-8">Manage your profile and intro requests</p>
 
@@ -92,7 +110,7 @@
             } else if (creator.status === 'approved') {
                 banner.classList.remove('hidden');
                 banner.className = 'mb-6 p-4 rounded-xl bg-green-100 text-green-800';
-                banner.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Your profile is live and visible to travelers!';
+                banner.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Your profile is live! <a href="/roamblr-web/creator.html?id=' + user.uid + '" class="underline ml-2">View your public profile →</a>';
             }
 
             // Load requests
@@ -154,6 +172,11 @@
                     <p><span class="font-semibold">Channel:</span> <a href="${creator.channelLink}" target="_blank" class="text-[#c4511c] hover:underline">${creator.channelLink}</a></p>
                     <p><span class="font-semibold">Best video:</span> <a href="${creator.bestVideo}" target="_blank" class="text-[#c4511c] hover:underline">Watch</a></p>
                     ${creator.instagram ? `<p><span class="font-semibold">Instagram:</span> ${creator.instagram}</p>` : ''}
+                    <div class="pt-4">
+                        <a href="/roamblr-web/creator.html?id=${user.uid}" class="text-[#c4511c] hover:underline text-sm">
+                            View your public profile →
+                        </a>
+                    </div>
                 </div>
             `;
         }

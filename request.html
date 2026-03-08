@@ -16,7 +16,7 @@
 <body class="bg-[#fbfaf8] min-h-screen">
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <!-- Navigation - ALL PATHS UPDATED -->
+        <!-- Navigation -->
         <nav class="flex flex-wrap items-center justify-between py-4 border-b border-[#eae7e2] mb-8">
             <a href="/roamblr-web/index.html" class="text-2xl font-bold">roam<span class="text-[#c4511c]">blr</span></a>
             <div class="flex items-center gap-4">
@@ -36,11 +36,17 @@
             <div class="bg-white rounded-2xl p-6 border border-[#eeebe6] mb-8" id="creator-summary">
                 <div class="flex items-center gap-4">
                     <div class="w-16 h-16 bg-[#e6ddd2] rounded-full flex items-center justify-center text-2xl text-[#7a5a44]" id="creator-avatar">👤</div>
-                    <div>
+                    <div class="flex-1">
                         <h2 class="font-bold text-xl" id="creator-name">Loading...</h2>
                         <p class="text-[#b33f0c] text-sm" id="creator-location"></p>
                         <p class="text-sm text-[#6f6f6f] mt-1" id="creator-niche"></p>
                     </div>
+                </div>
+                <!-- NEW: View full profile link -->
+                <div class="text-right mt-2" id="profile-link-container">
+                    <a href="#" id="profile-link" class="text-sm text-[#c4511c] hover:underline inline-flex items-center gap-1">
+                        View full profile <i class="fas fa-arrow-right text-xs"></i>
+                    </a>
                 </div>
             </div>
 
@@ -95,7 +101,7 @@
                 </form>
             </div>
 
-            <!-- Back link - UPDATED PATH -->
+            <!-- Back link -->
             <div class="text-center mt-8">
                 <a href="javascript:history.back()" class="text-sm text-[#6f6f6f] hover:text-[#c4511c]">
                     <i class="fas fa-arrow-left mr-1"></i> Back
@@ -140,6 +146,10 @@
                 document.getElementById('creator-location').textContent = `${creator.city || 'Unknown'} · ${creator.subs || '0'}`;
                 document.getElementById('creator-niche').textContent = creator.niches ? creator.niches.join(' · ') : '';
                 
+                // NEW: Set profile link
+                const profileLink = document.getElementById('profile-link');
+                profileLink.href = `/roamblr-web/creator.html?id=${creatorId}`;
+                
                 // Update page title
                 document.title = `Request intro to ${creator.name} · roamblr`;
             } catch (error) {
@@ -174,7 +184,6 @@
 
                 await addDoc(collection(db, "requests"), request);
                 
-                // UPDATED PATH
                 window.location.href = '/roamblr-web/thanks.html?type=request';
             } catch (error) {
                 console.error("Error submitting request:", error);

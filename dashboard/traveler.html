@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Dashboard · roamblr</title>
+    <title>Traveler Dashboard · roamblr</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
@@ -14,40 +14,46 @@
     </style>
 </head>
 <body class="bg-[#fbfaf8]">
-    <div class="max-w-7xl mx-auto px-4 py-8">
-        <!-- Header - ALL PATHS UPDATED -->
-        <div class="flex justify-between items-center mb-8">
-            <a href="/roamblr-web/index.html" class="text-2xl font-bold">roam<span class="text-[#c4511c]">blr</span></a>
-            <button id="logoutBtn" class="border border-[#151515] hover:bg-[#151515] hover:text-white px-5 py-2 rounded-full text-sm transition">
-                <i class="fas fa-sign-out-alt mr-2"></i>Sign out
-            </button>
+
+    <!-- Simple Mobile Header -->
+    <div class="bg-white border-b border-[#eae7e2] px-4 py-3 sticky top-0 z-10">
+        <div class="flex items-center justify-between">
+            <a href="/roamblr-web/index.html" class="text-xl font-bold">
+                roam<span class="text-[#c4511c]">blr</span>
+            </a>
+            <div class="flex items-center gap-3">
+                <a href="/roamblr-web/directory.html" class="text-[#c4511c] text-sm">
+                    <i class="fas fa-search"></i>
+                </a>
+                <button id="logoutBtn" class="border border-[#151515] text-[#151515] px-3 py-1.5 rounded-full text-xs">
+                    Exit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="px-4 py-6 max-w-lg mx-auto">
+        <!-- Header -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold">Your Trips</h1>
+            <p class="text-[#5a5a5a] text-sm mt-1">Track your collaboration requests</p>
         </div>
 
-        <h1 class="text-3xl font-bold mb-2">My Dashboard</h1>
-        <p class="text-[#5a5a5a] mb-8">Manage your intro requests</p>
-
-        <!-- Tabs -->
-        <div class="flex gap-4 mb-8 border-b border-[#eae7e2]">
-            <button onclick="showTab('requests')" class="tab-btn active px-6 py-3 font-medium border-b-2 border-[#c4511c] text-[#c4511c]" id="tab-requests">My Requests</button>
-            <button onclick="showTab('profile')" class="tab-btn px-6 py-3 font-medium text-[#6f6f6f] hover:text-[#c4511c]" id="tab-profile">Profile</button>
-        </div>
-
-        <!-- Requests Tab -->
-        <div id="requests-tab" class="tab-content">
-            <h2 class="text-xl font-semibold mb-4">My Intro Requests</h2>
-            <div id="requests-list" class="grid gap-4">
-                <!-- Loaded by JavaScript -->
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <div class="bg-white p-4 rounded-xl border border-[#eeebe6]">
+                <div class="text-2xl font-bold text-[#c4511c]" id="stat-pending">0</div>
+                <div class="text-xs text-[#6f6f6f]">Pending</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-[#eeebe6]">
+                <div class="text-2xl font-bold text-[#c4511c]" id="stat-accepted">0</div>
+                <div class="text-xs text-[#6f6f6f]">Accepted</div>
             </div>
         </div>
 
-        <!-- Profile Tab -->
-        <div id="profile-tab" class="tab-content hidden">
-            <h2 class="text-xl font-semibold mb-4">My Profile</h2>
-            <div class="bg-white rounded-2xl p-6 border border-[#eeebe6] max-w-md">
-                <div id="profile-info">
-                    <!-- Loaded by JavaScript -->
-                </div>
-            </div>
+        <!-- Requests List -->
+        <div id="requests-list" class="space-y-3">
+            <!-- Loaded by JS -->
         </div>
     </div>
 
@@ -57,32 +63,9 @@
 
         requireAuth();
 
-        // Tab switching
-        window.showTab = (tabName) => {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`${tabName}-tab`).classList.remove('hidden');
-            
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('border-[#c4511c]', 'text-[#c4511c]');
-                btn.classList.add('text-[#6f6f6f]');
-            });
-            document.getElementById(`tab-${tabName}`).classList.add('border-[#c4511c]', 'text-[#c4511c]');
-        };
-
-        // Load user data
-        async function loadUserData() {
+        async function loadTravelerData() {
             const user = await getCurrentUser();
             if (!user) return;
-
-            // Load profile
-            const userDoc = await getDoc(doc(db, "users", user.uid));
-            if (userDoc.exists()) {
-                const data = userDoc.data();
-                document.getElementById('profile-info').innerHTML = `
-                    <p class="mb-2"><span class="font-semibold">Name:</span> ${data.name || 'Not set'}</p>
-                    <p><span class="font-semibold">Email:</span> ${data.email}</p>
-                `;
-            }
 
             // Load requests
             const requestsQuery = query(
@@ -90,15 +73,32 @@
                 where("travelerId", "==", user.uid)
             );
             const requestsSnapshot = await getDocs(requestsQuery);
+            const requests = requestsSnapshot.docs;
             
+            // Update stats
+            const pending = requests.filter(d => d.data().status === 'pending').length;
+            const accepted = requests.filter(d => d.data().status === 'accepted').length;
+            
+            document.getElementById('stat-pending').textContent = pending;
+            document.getElementById('stat-accepted').textContent = accepted;
+
             const requestsList = document.getElementById('requests-list');
             
-            if (requestsSnapshot.empty) {
-                requestsList.innerHTML = '<p class="text-[#6f6f6f] py-8 text-center">No intro requests yet. <a href="/roamblr-web/directory.html" class="text-[#c4511c] underline">Browse cities</a> to get started.</p>';
+            if (requests.length === 0) {
+                requestsList.innerHTML = `
+                    <div class="bg-white p-8 rounded-xl border border-[#eeebe6] text-center">
+                        <div class="w-16 h-16 bg-[#f2ede7] rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-map-pin text-2xl text-[#c4511c]"></i>
+                        </div>
+                        <p class="text-[#5a5a5a] text-sm mb-3">No requests yet</p>
+                        <a href="/roamblr-web/directory.html" class="inline-block bg-[#c4511c] text-white px-6 py-2 rounded-full text-sm">
+                            Browse Cities
+                        </a>
+                    </div>
+                `;
             } else {
-                const requestsHtml = await Promise.all(requestsSnapshot.docs.map(async (doc) => {
+                const requestsHtml = await Promise.all(requests.map(async (doc) => {
                     const data = doc.data();
-                    // Get creator info
                     const creatorDoc = await getDoc(doc(db, "creators", data.creatorId));
                     const creator = creatorDoc.exists() ? creatorDoc.data() : { name: 'Unknown' };
                     
@@ -110,18 +110,30 @@
                     };
                     
                     return `
-                        <div class="bg-white rounded-2xl p-5 border border-[#eeebe6]">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h3 class="font-semibold">${creator.name}</h3>
-                                    <p class="text-sm text-[#c4511c]">${creator.city || 'Unknown city'}</p>
-                                    <p class="text-sm mt-2">📅 ${data.arrivalDate || 'Dates not specified'}</p>
-                                    <p class="text-sm text-[#5a5a5a] mt-2">"${data.contentIdea || 'No message'}"</p>
-                                </div>
-                                <span class="px-3 py-1 rounded-full text-xs font-semibold ${statusColors[data.status] || 'bg-gray-100'}">
-                                    ${data.status || 'pending'}
+                        <div class="bg-white p-4 rounded-xl border border-[#eeebe6]">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-semibold">${creator.name}</h3>
+                                <span class="px-2 py-1 rounded-full text-xs font-medium ${statusColors[data.status]}">
+                                    ${data.status}
                                 </span>
                             </div>
+                            <p class="text-xs text-[#c4511c] mb-2">
+                                <i class="far fa-calendar mr-1"></i> ${data.arrivalDate} to ${data.departureDate}
+                            </p>
+                            <p class="text-sm text-[#5a5a5a]">"${data.contentIdea}"</p>
+                            
+                            ${data.status === 'accepted' ? `
+                                <div class="mt-3 p-3 bg-green-50 rounded-lg">
+                                    <p class="text-xs text-green-700">
+                                        <i class="fas fa-check-circle mr-1"></i> 
+                                        Request accepted! They'll contact you soon.
+                                    </p>
+                                </div>
+                            ` : ''}
+                            
+                            <a href="/roamblr-web/creator.html?id=${data.creatorId}" class="mt-3 text-xs text-[#c4511c] inline-block">
+                                View Profile →
+                            </a>
                         </div>
                     `;
                 }));
@@ -130,11 +142,8 @@
             }
         }
 
-        // Logout
         document.getElementById('logoutBtn').addEventListener('click', logout);
-
-        // Load data on page load
-        loadUserData();
+        loadTravelerData();
     </script>
 </body>
 </html>

@@ -29,7 +29,7 @@
                 roam<span class="text-[#c4511c]">blr</span> <span class="text-sm font-normal text-[#6f6f6f] ml-1">Admin</span>
             </a>
             <div class="flex items-center gap-3">
-                <button onclick="refreshData()" class="text-[#6f6f6f] text-sm">
+                <button onclick="refreshData()" class="text-[#6f6f6f] text-sm" title="Refresh">
                     <i class="fas fa-sync-alt"></i>
                 </button>
                 <button id="logoutBtn" class="border border-[#151515] text-[#151515] px-3 py-1.5 rounded-full text-xs">
@@ -69,32 +69,42 @@
                 <div class="text-xs text-[#6f6f6f] mt-1">All time</div>
             </div>
         </div>
-        
-<!-- Data Repair Tool (Collapsible) -->
-<div class="bg-white p-4 rounded-xl border border-[#eeebe6] mb-6">
-    <button onclick="toggleRepairTool()" class="w-full flex justify-between items-center">
-        <span class="font-semibold text-sm flex items-center gap-2">
-            <i class="fas fa-tools text-[#c4511c]"></i>
-            Data Repair Tool
-        </span>
-        <i class="fas fa-chevron-down text-[#6f6f6f]" id="repair-chevron"></i>
-    </button>
-    
-    <div id="repair-tool" class="hidden mt-4 space-y-3">
-        <p class="text-xs text-[#6f6f6f]">Fix creators that were approved but not showing up.</p>
-        
-        <div class="grid grid-cols-2 gap-2">
-            <button onclick="fixApprovedCreators()" class="bg-yellow-600 text-white py-2 rounded-full text-xs font-medium">
-                <i class="fas fa-sync-alt mr-1"></i> Fix Approved
+
+        <!-- Data Repair Tool -->
+        <div class="bg-white p-4 rounded-xl border border-[#eeebe6] mb-6">
+            <button onclick="toggleRepairTool()" class="w-full flex justify-between items-center">
+                <span class="font-semibold text-sm flex items-center gap-2">
+                    <i class="fas fa-tools text-[#c4511c]"></i>
+                    Data Repair Tool
+                </span>
+                <i class="fas fa-chevron-down text-[#6f6f6f]" id="repair-chevron"></i>
             </button>
-            <button onclick="verifyAllCreators()" class="bg-blue-600 text-white py-2 rounded-full text-xs font-medium">
-                <i class="fas fa-check-double mr-1"></i> Verify All
-            </button>
+            
+            <div id="repair-tool" class="hidden mt-4 space-y-3">
+                <p class="text-xs text-[#6f6f6f]">Fix creators that were approved but not showing up, or verify all data.</p>
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="fixApprovedCreators()" class="bg-yellow-600 text-white py-2 rounded-full text-xs font-medium">
+                        <i class="fas fa-sync-alt mr-1"></i> Fix Approved
+                    </button>
+                    <button onclick="verifyAllCreators()" class="bg-blue-600 text-white py-2 rounded-full text-xs font-medium">
+                        <i class="fas fa-check-double mr-1"></i> Verify All
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="reindexAllCreators()" class="bg-purple-600 text-white py-2 rounded-full text-xs font-medium">
+                        <i class="fas fa-database mr-1"></i> Reindex All
+                    </button>
+                    <button onclick="fixMissingEmails()" class="bg-indigo-600 text-white py-2 rounded-full text-xs font-medium">
+                        <i class="fas fa-envelope mr-1"></i> Fix Missing Emails
+                    </button>
+                </div>
+                
+                <div id="repair-results" class="text-xs mt-2 hidden"></div>
+            </div>
         </div>
-        
-        <div id="repair-results" class="text-xs mt-2 hidden"></div>
-    </div>
-</div>
+
         <!-- Quick Actions -->
         <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
             <button onclick="loadPending()" class="bg-[#c4511c] text-white px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
@@ -105,6 +115,9 @@
             </button>
             <button onclick="loadAll()" class="bg-white border border-[#ddd8d0] px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
                 <i class="fas fa-users mr-1 text-[#c4511c]"></i> All
+            </button>
+            <button onclick="approveAllPending()" class="bg-green-600 text-white px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+                <i class="fas fa-check-double mr-1"></i> Approve All
             </button>
         </div>
 
@@ -145,9 +158,15 @@
         import { db, collection, getDocs, query, where, updateDoc, doc, getDoc, writeBatch } from '/roamblr-web/js/firebase.js';
         import { logout, requireAuth } from '/roamblr-web/js/auth.js';
 
-        // Only allow admin access - verify role
+        // Global variables
+        let currentFilter = 'pending';
+        let allCreators = [];
+        let allRequests = [];
+        let allCities = [];
+
+        // Verify admin access
         async function verifyAdmin() {
-            const user = (await import('/roamblr-web/js/auth.js')).getCurrentUser();
+            const user = await (await import('/roamblr-web/js/auth.js')).getCurrentUser();
             if (!user) {
                 window.location.href = '/roamblr-web/auth/login.html';
                 return false;
@@ -163,11 +182,7 @@
 
         await verifyAdmin();
 
-        let currentFilter = 'pending';
-        let allCreators = [];
-        let allRequests = [];
-
-        // Show message
+        // Show message function
         function showMessage(text, type = 'success') {
             const box = document.getElementById('messageBox');
             box.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800', 'bg-yellow-100', 'text-yellow-800');
@@ -192,6 +207,10 @@
             document.getElementById('loading-state').classList.remove('hidden');
             
             try {
+                // Load cities first
+                const citiesSnapshot = await getDocs(collection(db, "cities"));
+                allCities = citiesSnapshot.docs.map(doc => doc.id);
+                
                 // Load creators
                 const creatorsSnapshot = await getDocs(collection(db, "creators"));
                 allCreators = creatorsSnapshot.docs.map(doc => ({
@@ -218,8 +237,17 @@
                 document.getElementById('stat-requests').textContent = requests;
                 document.getElementById('pending-count').textContent = pending;
                 
-                // Calculate change (mock for now)
-                document.getElementById('stat-total-change').innerHTML = '⬆️ +' + Math.floor(Math.random() * 10) + '% this week';
+                // Calculate change (compare with last month - mock for now)
+                const lastMonth = allCreators.filter(c => {
+                    if (!c.createdAt) return false;
+                    const date = new Date(c.createdAt.seconds * 1000);
+                    const monthAgo = new Date();
+                    monthAgo.setMonth(monthAgo.getMonth() - 1);
+                    return date > monthAgo;
+                }).length;
+                
+                const growth = total > 0 ? Math.round((lastMonth / total) * 100) : 0;
+                document.getElementById('stat-total-change').innerHTML = `⬆️ +${growth}% this month`;
                 document.getElementById('stat-pending-desc').innerHTML = pending + ' need review';
                 
                 // Load current filter
@@ -259,12 +287,11 @@
             showMessage('Data refreshed', 'success');
         };
 
-        // Approve creator with verification
+        // Approve creator
         window.approveCreator = async (id, email) => {
             if (!confirm(`Approve this creator? They will appear live on the site.`)) return;
             
             try {
-                // Update status
                 await updateDoc(doc(db, "creators", id), { 
                     status: "approved",
                     approvedAt: new Date().toISOString()
@@ -313,7 +340,7 @@
             }
         };
 
-        // Quick approve multiple
+        // Approve all pending
         window.approveAllPending = async () => {
             const pending = allCreators.filter(c => c.status === 'pending');
             if (pending.length === 0) {
@@ -327,7 +354,10 @@
                 const batch = writeBatch(db);
                 pending.forEach(c => {
                     const ref = doc(db, "creators", c.id);
-                    batch.update(ref, { status: "approved" });
+                    batch.update(ref, { 
+                        status: "approved",
+                        approvedAt: new Date().toISOString()
+                    });
                 });
                 await batch.commit();
                 
@@ -361,6 +391,230 @@
             }
         };
 
+        // Toggle repair tool
+        window.toggleRepairTool = () => {
+            const tool = document.getElementById('repair-tool');
+            const chevron = document.getElementById('repair-chevron');
+            tool.classList.toggle('hidden');
+            chevron.classList.toggle('fa-chevron-down');
+            chevron.classList.toggle('fa-chevron-up');
+        };
+
+        // Fix approved creators
+        window.fixApprovedCreators = async () => {
+            const results = document.getElementById('repair-results');
+            results.classList.remove('hidden');
+            results.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Checking creators...';
+            
+            try {
+                const q = query(collection(db, "creators"), where("status", "==", "approved"));
+                const snapshot = await getDocs(q);
+                
+                let fixed = 0;
+                let alreadyGood = 0;
+                
+                for (const doc of snapshot.docs) {
+                    const creator = doc.data();
+                    let needsFix = false;
+                    const updates = {};
+                    
+                    // Fix missing city
+                    if (!creator.city || !allCities.includes(creator.city)) {
+                        updates.city = 'nairobi'; // Default fallback
+                        needsFix = true;
+                    }
+                    
+                    // Fix missing niches
+                    if (!creator.niches || creator.niches.length === 0) {
+                        updates.niches = ['travel', 'culture'];
+                        needsFix = true;
+                    }
+                    
+                    // Fix missing bio
+                    if (!creator.bio || creator.bio.length < 10) {
+                        updates.bio = creator.bio || 'Local creator excited to collaborate!';
+                        needsFix = true;
+                    }
+                    
+                    // Ensure status is explicitly approved
+                    updates.status = "approved";
+                    updates.lastVerified = new Date().toISOString();
+                    
+                    if (needsFix) {
+                        await updateDoc(doc.ref, updates);
+                        fixed++;
+                    } else {
+                        await updateDoc(doc.ref, { lastVerified: new Date().toISOString() });
+                        alreadyGood++;
+                    }
+                }
+                
+                results.innerHTML = `
+                    <div class="bg-green-100 text-green-800 p-3 rounded">
+                        <i class="fas fa-check-circle mr-1"></i> 
+                        Fixed: ${fixed} creators | Already good: ${alreadyGood}
+                    </div>
+                `;
+                
+                loadAllData();
+                
+            } catch (error) {
+                console.error("Error fixing creators:", error);
+                results.innerHTML = `
+                    <div class="bg-red-100 text-red-800 p-3 rounded">
+                        <i class="fas fa-exclamation-circle mr-1"></i> 
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        };
+
+        // Verify all creators
+        window.verifyAllCreators = async () => {
+            const results = document.getElementById('repair-results');
+            results.classList.remove('hidden');
+            results.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Verifying creators...';
+            
+            try {
+                const creatorsSnapshot = await getDocs(collection(db, "creators"));
+                let issues = [];
+                let good = 0;
+                
+                for (const doc of creatorsSnapshot.docs) {
+                    const creator = doc.data();
+                    
+                    // Check if city exists
+                    if (creator.city && !allCities.includes(creator.city)) {
+                        issues.push(`${creator.name || 'Unknown'}: city "${creator.city}" doesn't exist`);
+                    }
+                    
+                    // Check approved but missing required fields
+                    if (creator.status === 'approved') {
+                        if (!creator.niches || creator.niches.length === 0) {
+                            issues.push(`${creator.name || 'Unknown'}: approved but no niches`);
+                        }
+                        if (!creator.bio || creator.bio.length < 10) {
+                            issues.push(`${creator.name || 'Unknown'}: approved but bio too short`);
+                        }
+                        if (!creator.channelLink) {
+                            issues.push(`${creator.name || 'Unknown'}: approved but no channel link`);
+                        }
+                        good++;
+                    }
+                }
+                
+                if (issues.length === 0) {
+                    results.innerHTML = `
+                        <div class="bg-green-100 text-green-800 p-3 rounded">
+                            <i class="fas fa-check-circle mr-1"></i> 
+                            All ${good} approved creators look good!
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML = `
+                        <div class="bg-yellow-100 text-yellow-800 p-3 rounded">
+                            <p class="font-semibold mb-2">⚠️ Found ${issues.length} issues:</p>
+                            <ul class="list-disc pl-4 text-xs space-y-1 max-h-40 overflow-y-auto">
+                                ${issues.slice(0, 10).map(i => `<li>${i}</li>`).join('')}
+                                ${issues.length > 10 ? `<li>...and ${issues.length - 10} more</li>` : ''}
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error("Error verifying:", error);
+                results.innerHTML = `
+                    <div class="bg-red-100 text-red-800 p-3 rounded">
+                        <i class="fas fa-exclamation-circle mr-1"></i> 
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        };
+
+        // Reindex all creators
+        window.reindexAllCreators = async () => {
+            const results = document.getElementById('repair-results');
+            results.classList.remove('hidden');
+            results.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Reindexing all creators...';
+            
+            try {
+                const snapshot = await getDocs(collection(db, "creators"));
+                let updated = 0;
+                
+                for (const doc of snapshot.docs) {
+                    await updateDoc(doc.ref, {
+                        lastIndexed: new Date().toISOString(),
+                        searchableName: (doc.data().name || '').toLowerCase(),
+                        searchableCity: (doc.data().city || '').toLowerCase()
+                    });
+                    updated++;
+                }
+                
+                results.innerHTML = `
+                    <div class="bg-green-100 text-green-800 p-3 rounded">
+                        <i class="fas fa-check-circle mr-1"></i> 
+                        Reindexed ${updated} creators
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error("Error reindexing:", error);
+                results.innerHTML = `
+                    <div class="bg-red-100 text-red-800 p-3 rounded">
+                        <i class="fas fa-exclamation-circle mr-1"></i> 
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        };
+
+        // Fix missing emails
+        window.fixMissingEmails = async () => {
+            const results = document.getElementById('repair-results');
+            results.classList.remove('hidden');
+            results.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Fixing missing emails...';
+            
+            try {
+                const creatorsSnapshot = await getDocs(collection(db, "creators"));
+                let fixed = 0;
+                
+                for (const doc of creatorsSnapshot.docs) {
+                    const creator = doc.data();
+                    if (!creator.email) {
+                        // Try to get from users collection
+                        const userDoc = await getDoc(doc(db, "users", doc.id));
+                        if (userDoc.exists()) {
+                            await updateDoc(doc.ref, { 
+                                email: userDoc.data().email,
+                                name: userDoc.data().name || creator.name
+                            });
+                            fixed++;
+                        }
+                    }
+                }
+                
+                results.innerHTML = `
+                    <div class="bg-green-100 text-green-800 p-3 rounded">
+                        <i class="fas fa-check-circle mr-1"></i> 
+                        Fixed ${fixed} creators with missing emails
+                    </div>
+                `;
+                
+                loadAllData();
+                
+            } catch (error) {
+                console.error("Error fixing emails:", error);
+                results.innerHTML = `
+                    <div class="bg-red-100 text-red-800 p-3 rounded">
+                        <i class="fas fa-exclamation-circle mr-1"></i> 
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        };
+
         // Render creators
         function renderCreators(creators, filterType) {
             const container = document.getElementById('creatorsList');
@@ -378,29 +632,31 @@
             }
 
             container.innerHTML = creators.map((creator, index) => {
-                // Get request count for this creator
                 const requestCount = allRequests.filter(r => r.creatorId === creator.id).length;
-                
-                // Calculate join date
                 const joinDate = creator.createdAt ? new Date(creator.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown';
+                const cityExists = allCities.includes(creator.city);
                 
                 return `
-                    <div class="bg-white p-4 rounded-xl border border-[#eeebe6] slide-up" style="animation-delay: ${index * 0.05}s">
+                    <div class="bg-white p-4 rounded-xl border border-[#eeebe6] slide-up ${!cityExists && creator.status === 'approved' ? 'border-yellow-400 border-2' : ''}" style="animation-delay: ${index * 0.05}s">
                         <div class="flex items-start gap-3 mb-3">
                             <div class="w-12 h-12 bg-[#e6ddd2] rounded-full flex items-center justify-center text-xl flex-shrink-0">
                                 ${creator.avatar || '👤'}
                             </div>
                             <div class="flex-1 min-w-0">
                                 <div class="flex justify-between items-start">
-                                    <h3 class="font-semibold truncate">${creator.name}</h3>
+                                    <h3 class="font-semibold truncate">${creator.name || 'Unnamed'}</h3>
                                     <span class="px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2
                                         ${creator.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
                                         ${creator.status === 'approved' ? 'bg-green-100 text-green-800' : ''}
-                                        ${creator.status === 'rejected' ? 'bg-red-100 text-red-800' : ''}">
-                                        ${creator.status}
+                                        ${creator.status === 'rejected' ? 'bg-red-100 text-red-800' : ''}
+                                        ${creator.status === 'deleted' ? 'bg-gray-100 text-gray-800' : ''}">
+                                        ${creator.status || 'unknown'}
                                     </span>
                                 </div>
-                                <p class="text-xs text-[#c4511c] truncate">${creator.city} · ${creator.subs || '0'} subs</p>
+                                <p class="text-xs text-[#c4511c] truncate">
+                                    ${creator.city || 'No city'} · ${creator.subs || '0'} subs
+                                    ${!cityExists && creator.status === 'approved' ? ' ⚠️ City missing' : ''}
+                                </p>
                             </div>
                         </div>
                         
@@ -419,8 +675,9 @@
                             </div>
                         </div>
                         
-                        <div class="text-xs text-[#6f6f6f] mb-3">
-                            <i class="far fa-calendar mr-1"></i> Joined: ${joinDate}
+                        <div class="text-xs text-[#6f6f6f] mb-3 flex flex-wrap gap-2">
+                            <span><i class="far fa-calendar mr-1"></i> ${joinDate}</span>
+                            ${creator.email ? '<span><i class="far fa-envelope mr-1"></i> Has email</span>' : ''}
                         </div>
                         
                         <div class="flex gap-2">
@@ -448,7 +705,13 @@
                                 </button>
                             ` : ''}
                             
-                            <button onclick="deleteCreator('${creator.id}')" class="w-8 h-8 border border-red-600 text-red-600 rounded-full flex items-center justify-center">
+                            ${creator.status === 'deleted' ? `
+                                <button onclick="approveCreator('${creator.id}')" class="flex-1 bg-green-600 text-white py-2 rounded-full text-xs font-medium">
+                                    Restore
+                                </button>
+                            ` : ''}
+                            
+                            <button onclick="deleteCreator('${creator.id}')" class="w-8 h-8 border border-red-600 text-red-600 rounded-full flex items-center justify-center" title="Delete">
                                 <i class="fas fa-trash-alt text-xs"></i>
                             </button>
                         </div>
@@ -456,6 +719,13 @@
                         ${creator.bio ? `
                             <div class="mt-3 text-xs text-[#5a5a5a] bg-[#f9f6f2] p-2 rounded">
                                 "${creator.bio.substring(0, 80)}${creator.bio.length > 80 ? '...' : ''}"
+                            </div>
+                        ` : ''}
+                        
+                        ${!cityExists && creator.status === 'approved' ? `
+                            <div class="mt-2 text-xs text-yellow-600">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                City "${creator.city}" doesn't exist. Edit profile to fix.
                             </div>
                         ` : ''}
                     </div>
@@ -468,146 +738,6 @@
 
         // Initial load
         loadAllData();
-        // Toggle repair tool
-window.toggleRepairTool = () => {
-    const tool = document.getElementById('repair-tool');
-    const chevron = document.getElementById('repair-chevron');
-    tool.classList.toggle('hidden');
-    chevron.classList.toggle('fa-chevron-down');
-    chevron.classList.toggle('fa-chevron-up');
-};
-
-// Fix previously approved creators
-window.fixApprovedCreators = async () => {
-    const results = document.getElementById('repair-results');
-    results.classList.remove('hidden');
-    results.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Checking creators...';
-    
-    try {
-        // Get all creators marked as approved
-        const q = query(collection(db, "creators"), where("status", "==", "approved"));
-        const snapshot = await getDocs(q);
-        
-        let fixed = 0;
-        let alreadyGood = 0;
-        
-        for (const doc of snapshot.docs) {
-            const creator = doc.data();
-            let needsFix = false;
-            
-            // Check if missing required fields
-            if (!creator.city || !creator.niches || !creator.bio) {
-                needsFix = true;
-            }
-            
-            // Check if email is missing
-            if (!creator.email) {
-                // Try to get from users collection
-                const userDoc = await getDoc(doc(db, "users", doc.id));
-                if (userDoc.exists()) {
-                    await updateDoc(doc.ref, { 
-                        email: userDoc.data().email,
-                        name: userDoc.data().name || creator.name
-                    });
-                    fixed++;
-                }
-            }
-            
-            // Ensure status is explicitly 'approved'
-            await updateDoc(doc.ref, { 
-                status: "approved",
-                lastVerified: new Date().toISOString()
-            });
-            
-            if (needsFix) {
-                fixed++;
-            } else {
-                alreadyGood++;
-            }
-        }
-        
-        results.innerHTML = `
-            <div class="bg-green-100 text-green-800 p-3 rounded">
-                <i class="fas fa-check-circle mr-1"></i> 
-                Fixed: ${fixed} creators | Already good: ${alreadyGood}
-            </div>
-        `;
-        
-        // Refresh data
-        loadAllData();
-        
-    } catch (error) {
-        console.error("Error fixing creators:", error);
-        results.innerHTML = `
-            <div class="bg-red-100 text-red-800 p-3 rounded">
-                <i class="fas fa-exclamation-circle mr-1"></i> 
-                Error: ${error.message}
-            </div>
-        `;
-    }
-};
-
-// Verify all creators (check if they're actually showing up)
-window.verifyAllCreators = async () => {
-    const results = document.getElementById('repair-results');
-    results.classList.remove('hidden');
-    results.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Verifying creators...';
-    
-    try {
-        const creatorsSnapshot = await getDocs(collection(db, "creators"));
-        const citiesSnapshot = await getDocs(collection(db, "cities"));
-        
-        const cityList = citiesSnapshot.docs.map(d => d.id);
-        let issues = [];
-        
-        for (const doc of creatorsSnapshot.docs) {
-            const creator = doc.data();
-            
-            // Check if city exists
-            if (!cityList.includes(creator.city)) {
-                issues.push(`${creator.name}: city "${creator.city}" doesn't exist`);
-            }
-            
-            // Check if approved but missing required fields
-            if (creator.status === 'approved') {
-                if (!creator.niches || creator.niches.length === 0) {
-                    issues.push(`${creator.name}: approved but no niches`);
-                }
-                if (!creator.bio || creator.bio.length < 10) {
-                    issues.push(`${creator.name}: approved but bio too short`);
-                }
-            }
-        }
-        
-        if (issues.length === 0) {
-            results.innerHTML = `
-                <div class="bg-green-100 text-green-800 p-3 rounded">
-                    <i class="fas fa-check-circle mr-1"></i> 
-                    All creators look good!
-                </div>
-            `;
-        } else {
-            results.innerHTML = `
-                <div class="bg-yellow-100 text-yellow-800 p-3 rounded">
-                    <p class="font-semibold mb-2">⚠️ Found ${issues.length} issues:</p>
-                    <ul class="list-disc pl-4 text-xs space-y-1">
-                        ${issues.slice(0, 5).map(i => `<li>${i}</li>`).join('')}
-                        ${issues.length > 5 ? `<li>...and ${issues.length - 5} more</li>` : ''}
-                    </ul>
-                </div>
-            `;
-        }
-        
-    } catch (error) {
-        console.error("Error verifying:", error);
-        results.innerHTML = `
-            <div class="bg-red-100 text-red-800 p-3 rounded">
-                <i class="fas fa-exclamation-circle mr-1"></i> 
-                Error: ${error.message}
-            </div>
-        `;
-    }
-};
     </script>
 </body>
 </html>

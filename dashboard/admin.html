@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin · roamblr</title>
+    <title>Admin Dashboard · roamblr</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
@@ -11,99 +11,438 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
     </style>
 </head>
-<body class="bg-[#fbfaf8]">
-    <div class="max-w-7xl mx-auto px-4 py-8">
-        <!-- Header - ALL PATHS UPDATED -->
-        <div class="flex justify-between items-center mb-8">
-            <a href="/roamblr-web/index.html" class="text-2xl font-bold">roam<span class="text-[#c4511c]">blr</span></a>
-            <button id="logoutBtn" class="border border-[#151515] hover:bg-[#151515] hover:text-white px-5 py-2 rounded-full text-sm transition">
-                <i class="fas fa-sign-out-alt mr-2"></i>Sign out
+<body class="bg-[#fbfaf8] pb-24">
+
+    <!-- Header -->
+    <div class="bg-white border-b border-[#eae7e2] px-4 py-3 sticky top-0 z-10">
+        <div class="flex items-center justify-between max-w-lg mx-auto">
+            <a href="/roamblr-web/index.html" class="text-xl font-bold">
+                roam<span class="text-[#c4511c]">blr</span> <span class="text-sm font-normal text-[#6f6f6f] ml-1">Admin</span>
+            </a>
+            <div class="flex items-center gap-3">
+                <button onclick="refreshData()" class="text-[#6f6f6f] text-sm">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button id="logoutBtn" class="border border-[#151515] text-[#151515] px-3 py-1.5 rounded-full text-xs">
+                    Exit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="px-4 py-6 max-w-lg mx-auto">
+        <!-- Welcome Header -->
+        <div class="mb-6 slide-up">
+            <h1 class="text-2xl font-bold">Admin Dashboard</h1>
+            <p class="text-sm text-[#6f6f6f] mt-1">Manage creators and monitor platform</p>
+        </div>
+
+        <!-- Platform Stats Cards -->
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <div class="bg-white p-4 rounded-xl border border-[#eeebe6] shadow-sm">
+                <div class="text-xs text-[#6f6f6f] mb-1">Total Creators</div>
+                <div class="text-3xl font-bold text-[#c4511c]" id="stat-total">0</div>
+                <div class="text-xs text-green-600 mt-1" id="stat-total-change"></div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-[#eeebe6] shadow-sm">
+                <div class="text-xs text-[#6f6f6f] mb-1">Pending Review</div>
+                <div class="text-3xl font-bold text-yellow-600" id="stat-pending">0</div>
+                <div class="text-xs text-[#6f6f6f] mt-1" id="stat-pending-desc"></div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-[#eeebe6] shadow-sm">
+                <div class="text-xs text-[#6f6f6f] mb-1">Approved</div>
+                <div class="text-3xl font-bold text-green-600" id="stat-approved">0</div>
+                <div class="text-xs text-[#6f6f6f] mt-1">Live on site</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-[#eeebe6] shadow-sm">
+                <div class="text-xs text-[#6f6f6f] mb-1">Total Requests</div>
+                <div class="text-3xl font-bold text-blue-600" id="stat-requests">0</div>
+                <div class="text-xs text-[#6f6f6f] mt-1">All time</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+            <button onclick="loadPending()" class="bg-[#c4511c] text-white px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+                <i class="fas fa-clock mr-1"></i> Pending (<span id="pending-count">0</span>)
+            </button>
+            <button onclick="loadApproved()" class="bg-white border border-[#ddd8d0] px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+                <i class="fas fa-check-circle mr-1 text-green-600"></i> Approved
+            </button>
+            <button onclick="loadAll()" class="bg-white border border-[#ddd8d0] px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+                <i class="fas fa-users mr-1 text-[#c4511c]"></i> All
             </button>
         </div>
 
-        <h1 class="text-3xl font-bold mb-8">Admin Dashboard</h1>
-        
-        <!-- Tabs -->
-        <div class="flex gap-4 mb-8">
-            <button onclick="loadPending()" class="px-6 py-2 bg-[#c4511c] text-white rounded-full">Pending</button>
-            <button onclick="loadApproved()" class="px-6 py-2 border border-[#ddd8d0] rounded-full">Approved</button>
+        <!-- Success/Error Messages -->
+        <div id="messageBox" class="mb-4 p-3 rounded-lg text-sm hidden"></div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="text-center py-8 hidden">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#c4511c] border-t-transparent"></div>
+            <p class="text-sm text-[#6f6f6f] mt-2">Loading creators...</p>
         </div>
-        
+
         <!-- Creators List -->
-        <div id="creatorsList" class="grid gap-4">
+        <div id="creatorsList" class="space-y-3">
             <!-- Loaded by JavaScript -->
         </div>
     </div>
 
+    <!-- Bottom Navigation -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-[#eae7e2] px-4 py-2 z-50">
+        <div class="flex justify-around items-center max-w-lg mx-auto">
+            <a href="/roamblr-web/dashboard/admin.html" class="flex flex-col items-center p-2 text-[#c4511c]">
+                <i class="fas fa-home text-xl"></i>
+                <span class="text-xs mt-1">Home</span>
+            </a>
+            <a href="/roamblr-web/directory.html" class="flex flex-col items-center p-2 text-[#6f6f6f]">
+                <i class="fas fa-search text-xl"></i>
+                <span class="text-xs mt-1">Browse</span>
+            </a>
+            <button onclick="refreshData()" class="flex flex-col items-center p-2 text-[#6f6f6f]">
+                <i class="fas fa-sync-alt text-xl"></i>
+                <span class="text-xs mt-1">Refresh</span>
+            </button>
+        </div>
+    </div>
+
     <script type="module">
-        import { db, collection, getDocs, query, where, updateDoc, doc } from '/roamblr-web/js/firebase.js';
+        import { db, collection, getDocs, query, where, updateDoc, doc, getDoc, writeBatch } from '/roamblr-web/js/firebase.js';
         import { logout, requireAuth } from '/roamblr-web/js/auth.js';
 
-        // Only allow admin access - you'll need to set a user as admin manually in Firebase
-        requireAuth();
-
-        window.logout = logout;
-
-        async function loadPending() {
-            const q = query(collection(db, "creators"), where("status", "==", "pending"));
-            const snapshot = await getDocs(q);
-            renderCreators(snapshot.docs);
-        }
-        
-        async function loadApproved() {
-            const q = query(collection(db, "creators"), where("status", "==", "approved"));
-            const snapshot = await getDocs(q);
-            renderCreators(snapshot.docs);
-        }
-        
-        function renderCreators(docs) {
-            const container = document.getElementById('creatorsList');
+        // Only allow admin access - verify role
+        async function verifyAdmin() {
+            const user = (await import('/roamblr-web/js/auth.js')).getCurrentUser();
+            if (!user) {
+                window.location.href = '/roamblr-web/auth/login.html';
+                return false;
+            }
             
-            if (docs.length === 0) {
-                container.innerHTML = '<p class="text-center py-12 text-[#6f6f6f]">No creators found</p>';
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (!userDoc.exists() || userDoc.data().role !== 'admin') {
+                window.location.href = '/roamblr-web/index.html';
+                return false;
+            }
+            return true;
+        }
+
+        await verifyAdmin();
+
+        let currentFilter = 'pending';
+        let allCreators = [];
+        let allRequests = [];
+
+        // Show message
+        function showMessage(text, type = 'success') {
+            const box = document.getElementById('messageBox');
+            box.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800', 'bg-yellow-100', 'text-yellow-800');
+            
+            if (type === 'success') {
+                box.classList.add('bg-green-100', 'text-green-800');
+            } else if (type === 'error') {
+                box.classList.add('bg-red-100', 'text-red-800');
+            } else {
+                box.classList.add('bg-yellow-100', 'text-yellow-800');
+            }
+            
+            box.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2"></i>${text}`;
+            
+            setTimeout(() => {
+                box.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Load all data
+        async function loadAllData() {
+            document.getElementById('loading-state').classList.remove('hidden');
+            
+            try {
+                // Load creators
+                const creatorsSnapshot = await getDocs(collection(db, "creators"));
+                allCreators = creatorsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                // Load requests
+                const requestsSnapshot = await getDocs(collection(db, "requests"));
+                allRequests = requestsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                // Update stats
+                const total = allCreators.length;
+                const pending = allCreators.filter(c => c.status === 'pending').length;
+                const approved = allCreators.filter(c => c.status === 'approved').length;
+                const requests = allRequests.length;
+                
+                document.getElementById('stat-total').textContent = total;
+                document.getElementById('stat-pending').textContent = pending;
+                document.getElementById('stat-approved').textContent = approved;
+                document.getElementById('stat-requests').textContent = requests;
+                document.getElementById('pending-count').textContent = pending;
+                
+                // Calculate change (mock for now)
+                document.getElementById('stat-total-change').innerHTML = '⬆️ +' + Math.floor(Math.random() * 10) + '% this week';
+                document.getElementById('stat-pending-desc').innerHTML = pending + ' need review';
+                
+                // Load current filter
+                if (currentFilter === 'pending') loadPending();
+                else if (currentFilter === 'approved') loadApproved();
+                else loadAll();
+                
+            } catch (error) {
+                console.error("Error loading data:", error);
+                showMessage('Failed to load data', 'error');
+            } finally {
+                document.getElementById('loading-state').classList.add('hidden');
+            }
+        }
+
+        // Filter functions
+        window.loadPending = () => {
+            currentFilter = 'pending';
+            const filtered = allCreators.filter(c => c.status === 'pending');
+            renderCreators(filtered, 'pending');
+        };
+
+        window.loadApproved = () => {
+            currentFilter = 'approved';
+            const filtered = allCreators.filter(c => c.status === 'approved');
+            renderCreators(filtered, 'approved');
+        };
+
+        window.loadAll = () => {
+            currentFilter = 'all';
+            renderCreators(allCreators, 'all');
+        };
+
+        // Refresh data
+        window.refreshData = () => {
+            loadAllData();
+            showMessage('Data refreshed', 'success');
+        };
+
+        // Approve creator with verification
+        window.approveCreator = async (id, email) => {
+            if (!confirm(`Approve this creator? They will appear live on the site.`)) return;
+            
+            try {
+                // Update status
+                await updateDoc(doc(db, "creators", id), { 
+                    status: "approved",
+                    approvedAt: new Date().toISOString()
+                });
+                
+                // Update local data
+                const index = allCreators.findIndex(c => c.id === id);
+                if (index !== -1) {
+                    allCreators[index].status = 'approved';
+                }
+                
+                showMessage(`✅ Creator approved! They are now live.`, 'success');
+                
+                // Reload current filter
+                if (currentFilter === 'pending') loadPending();
+                else if (currentFilter === 'approved') loadApproved();
+                else loadAll();
+                
+            } catch (error) {
+                console.error("Error approving creator:", error);
+                showMessage('Failed to approve. Check console.', 'error');
+            }
+        };
+
+        // Reject creator
+        window.rejectCreator = async (id) => {
+            if (!confirm(`Reject this creator? They will not be able to appear on the site.`)) return;
+            
+            try {
+                await updateDoc(doc(db, "creators", id), { status: "rejected" });
+                
+                const index = allCreators.findIndex(c => c.id === id);
+                if (index !== -1) {
+                    allCreators[index].status = 'rejected';
+                }
+                
+                showMessage('Creator rejected', 'warning');
+                
+                if (currentFilter === 'pending') loadPending();
+                else if (currentFilter === 'approved') loadApproved();
+                else loadAll();
+                
+            } catch (error) {
+                console.error("Error rejecting creator:", error);
+                showMessage('Failed to reject', 'error');
+            }
+        };
+
+        // Quick approve multiple
+        window.approveAllPending = async () => {
+            const pending = allCreators.filter(c => c.status === 'pending');
+            if (pending.length === 0) {
+                showMessage('No pending creators', 'warning');
                 return;
             }
             
-            container.innerHTML = docs.map(doc => {
-                const data = doc.data();
+            if (!confirm(`Approve all ${pending.length} pending creators?`)) return;
+            
+            try {
+                const batch = writeBatch(db);
+                pending.forEach(c => {
+                    const ref = doc(db, "creators", c.id);
+                    batch.update(ref, { status: "approved" });
+                });
+                await batch.commit();
+                
+                showMessage(`✅ Approved ${pending.length} creators`, 'success');
+                loadAllData();
+                
+            } catch (error) {
+                console.error("Error in batch approve:", error);
+                showMessage('Failed to approve all', 'error');
+            }
+        };
+
+        // Delete creator
+        window.deleteCreator = async (id) => {
+            if (!confirm(`⚠️ Permanently delete this creator? This cannot be undone.`)) return;
+            
+            try {
+                await updateDoc(doc(db, "creators", id), { status: "deleted" });
+                
+                const index = allCreators.findIndex(c => c.id === id);
+                if (index !== -1) {
+                    allCreators[index].status = 'deleted';
+                }
+                
+                showMessage('Creator deleted', 'warning');
+                loadAllData();
+                
+            } catch (error) {
+                console.error("Error deleting creator:", error);
+                showMessage('Failed to delete', 'error');
+            }
+        };
+
+        // Render creators
+        function renderCreators(creators, filterType) {
+            const container = document.getElementById('creatorsList');
+            
+            if (creators.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white p-8 rounded-xl border-2 border-dashed border-[#c4511c] text-center slide-up">
+                        <div class="w-16 h-16 bg-[#c4511c] bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-users text-2xl text-[#c4511c]"></i>
+                        </div>
+                        <p class="text-[#5a5a5a] text-sm">No ${filterType} creators found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = creators.map((creator, index) => {
+                // Get request count for this creator
+                const requestCount = allRequests.filter(r => r.creatorId === creator.id).length;
+                
+                // Calculate join date
+                const joinDate = creator.createdAt ? new Date(creator.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown';
+                
                 return `
-                    <div class="bg-white rounded-2xl p-6 border border-[#eeebe6]">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="font-bold text-lg">${data.name}</h3>
-                                <p class="text-[#c4511c]">${data.city} · ${data.subs}</p>
-                                <p class="text-sm mt-2">${data.bio ? data.bio.substring(0, 100) + '...' : ''}</p>
-                                <div class="flex gap-2 mt-3">
-                                    <a href="${data.channelLink}" target="_blank" class="text-sm text-[#c4511c]">Channel</a>
-                                    <a href="${data.bestVideo}" target="_blank" class="text-sm text-[#c4511c]">Best video</a>
-                                </div>
+                    <div class="bg-white p-4 rounded-xl border border-[#eeebe6] slide-up" style="animation-delay: ${index * 0.05}s">
+                        <div class="flex items-start gap-3 mb-3">
+                            <div class="w-12 h-12 bg-[#e6ddd2] rounded-full flex items-center justify-center text-xl flex-shrink-0">
+                                ${creator.avatar || '👤'}
                             </div>
-                            <div class="flex gap-2">
-                                <button onclick="approveCreator('${doc.id}')" class="bg-green-600 text-white px-4 py-2 rounded-full text-sm hover:bg-green-700 transition">Approve</button>
-                                <button onclick="rejectCreator('${doc.id}')" class="border border-red-600 text-red-600 px-4 py-2 rounded-full text-sm hover:bg-red-600 hover:text-white transition">Reject</button>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-semibold truncate">${creator.name}</h3>
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2
+                                        ${creator.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
+                                        ${creator.status === 'approved' ? 'bg-green-100 text-green-800' : ''}
+                                        ${creator.status === 'rejected' ? 'bg-red-100 text-red-800' : ''}">
+                                        ${creator.status}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-[#c4511c] truncate">${creator.city} · ${creator.subs || '0'} subs</p>
                             </div>
                         </div>
+                        
+                        <div class="grid grid-cols-3 gap-2 text-xs text-center mb-3">
+                            <div class="bg-[#f9f6f2] p-2 rounded">
+                                <div class="font-semibold">${requestCount}</div>
+                                <div class="text-[#6f6f6f]">requests</div>
+                            </div>
+                            <div class="bg-[#f9f6f2] p-2 rounded">
+                                <div class="font-semibold">${creator.hosted || 0}</div>
+                                <div class="text-[#6f6f6f]">collabs</div>
+                            </div>
+                            <div class="bg-[#f9f6f2] p-2 rounded">
+                                <div class="font-semibold">${creator.niches?.length || 0}</div>
+                                <div class="text-[#6f6f6f]">niches</div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-xs text-[#6f6f6f] mb-3">
+                            <i class="far fa-calendar mr-1"></i> Joined: ${joinDate}
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            ${creator.status === 'pending' ? `
+                                <button onclick="approveCreator('${creator.id}')" class="flex-1 bg-green-600 text-white py-2 rounded-full text-xs font-medium">
+                                    ✓ Approve
+                                </button>
+                                <button onclick="rejectCreator('${creator.id}')" class="flex-1 border border-red-600 text-red-600 py-2 rounded-full text-xs font-medium">
+                                    ✕ Reject
+                                </button>
+                            ` : ''}
+                            
+                            ${creator.status === 'approved' ? `
+                                <button onclick="window.open('/roamblr-web/creator.html?id=${creator.id}', '_blank')" class="flex-1 bg-[#c4511c] text-white py-2 rounded-full text-xs font-medium">
+                                    <i class="fas fa-eye mr-1"></i> View
+                                </button>
+                                <button onclick="rejectCreator('${creator.id}')" class="flex-1 border border-red-600 text-red-600 py-2 rounded-full text-xs font-medium">
+                                    Hide
+                                </button>
+                            ` : ''}
+                            
+                            ${creator.status === 'rejected' ? `
+                                <button onclick="approveCreator('${creator.id}')" class="flex-1 bg-green-600 text-white py-2 rounded-full text-xs font-medium">
+                                    Restore
+                                </button>
+                            ` : ''}
+                            
+                            <button onclick="deleteCreator('${creator.id}')" class="w-8 h-8 border border-red-600 text-red-600 rounded-full flex items-center justify-center">
+                                <i class="fas fa-trash-alt text-xs"></i>
+                            </button>
+                        </div>
+                        
+                        ${creator.bio ? `
+                            <div class="mt-3 text-xs text-[#5a5a5a] bg-[#f9f6f2] p-2 rounded">
+                                "${creator.bio.substring(0, 80)}${creator.bio.length > 80 ? '...' : ''}"
+                            </div>
+                        ` : ''}
                     </div>
                 `;
             }).join('');
         }
-        
-        window.approveCreator = async (id) => {
-            await updateDoc(doc(db, "creators", id), { status: "approved" });
-            loadPending();
-        };
-        
-        window.rejectCreator = async (id) => {
-            await updateDoc(doc(db, "creators", id), { status: "rejected" });
-            loadPending();
-        };
-        
-        // Load pending on page load
-        loadPending();
 
+        // Logout
         document.getElementById('logoutBtn').addEventListener('click', logout);
+
+        // Initial load
+        loadAllData();
     </script>
 </body>
 </html>
